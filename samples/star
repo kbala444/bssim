@@ -1,0 +1,6 @@
+n:20, vv:5
+[1-19]->0
+#0 put samples/test.txt
+#[1-19] get samples/test.txt
+0 put samples/test.mp3
+[1-19] get samples/test.mp3
