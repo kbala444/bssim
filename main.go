@@ -77,6 +77,7 @@ func configure(cfgString string){
 		"node_count" : "10",
 		"visibility_delay" : "0",
 		"query_delay" : "0",
+		"block_size": strconv.Itoa(splitter.DefaultBlockSize),
 		//"message_delay" : "0",
 		//"type" : "mock",
 		//  add more options here later
@@ -140,7 +141,11 @@ func putFileCmd(node int, file string) error{
 		return fmt.Errorf("Line %d: Failed to open file '%s'.", currLine, file)
 	}
 
-	chunks := splitter.DefaultSplitter.Split(reader)
+	bsize, err := strconv.Atoi(config["block_size"])
+	if err != nil {
+		return fmt.Errorf("Invalid block size in config.")
+	}
+	chunks := (&splitter.SizeSplitter{Size: bsize}).Split(reader)
 	
 	files[file] = make([]key.Key, 0)
 	for chunk := range chunks {
@@ -160,7 +165,7 @@ func putFileCmd(node int, file string) error{
 func getFileCmd(nodes []int, file string) error{
 	blocks, ok := files[file]
 	if !ok {
-		fmt.Println("Tried to get file, '%s', which has not been added.", file)
+		fmt.Printf("Tried to get file, '%s', which has not been added.\n", file)
 		return nil
 	}
 	var wg sync.WaitGroup
