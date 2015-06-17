@@ -1,6 +1,7 @@
 package main
 //  should validate config
 
+
 import (
 	"sync"
 	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
@@ -11,6 +12,11 @@ import (
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 	splitter "github.com/ipfs/go-ipfs/importer/chunk"
+	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
+	//peer "github.com/ipfs/go-ipfs/p2p/peer"
+	//p2putil "github.com/ipfs/go-ipfs/p2p/test/util"
+	testutil "github.com/ipfs/go-ipfs/util/testutil"
+	//bsnet "github.com/ipfs/go-ipfs/exchange/bitswap/network"
 	"bufio"
 	"fmt"
 	"os"
@@ -19,6 +25,11 @@ import (
 	"errors"
 	"log"
 	"time"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	ds_sync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	blockstore "github.com/ipfs/go-ipfs/blocks/blockstore"
+	datastore2 "github.com/ipfs/go-ipfs/util/datastore2"
+	//"github.com/ipfs/go-ipfs/util"
 )
 
 var config map[string]string
@@ -41,7 +52,7 @@ func main() {
 		file, err = os.Open("samples/star")
 	}
 	
-	check(err)
+    check(err)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	
@@ -77,7 +88,6 @@ func configure(cfgString string){
 		"vv" : "0",
 		"q" : "0",
 		"md" : "0",
-		"bsize": strconv.Itoa(splitter.DefaultBlockSize),
 		//"type" : "mock",
 		//  add more options here later
 	}
@@ -139,12 +149,8 @@ func putFileCmd(node int, file string) error{
 	if err != nil {
 		return fmt.Errorf("Line %d: Failed to open file '%s'.", currLine, file)
 	}
-	
-	bsize, err := strconv.Atoi(config["bsize"])
-	if err != nil {
-		return fmt.Errorf("Invalid block size in config.")
-	}
-	chunks := (&splitter.SizeSplitter{Size: bsize}).Split(reader)
+
+	chunks := splitter.DefaultSplitter.Split(reader)
 	
 	files[file] = make([]key.Key, 0)
 	for chunk := range chunks {
@@ -164,7 +170,7 @@ func putFileCmd(node int, file string) error{
 func getFileCmd(nodes []int, file string) error{
 	blocks, ok := files[file]
 	if !ok {
-		fmt.Printf("Tried to get file, '%s', which has not been added.\n", file)
+		fmt.Println("Tried to get file, '%s', which has not been added.", file)
 		return nil
 	}
 	var wg sync.WaitGroup
@@ -269,9 +275,45 @@ func createTestNetwork() tn.Network {
 	vv := convertTimeField("vv")
 	q := convertTimeField("q")
 	md := convertTimeField("md")
+	fmt.Println(md)
 		
 	delayCfg := mockrouting.DelayConfig{ValueVisibility: vv, Query: q}
-	return tn.VirtualNetwork(mockrouting.NewServerWithDelay(delayCfg), md)
+	n, err := strconv.Atoi(config["n"])
+	check(err)
+	mn, err := mocknet.FullMeshLinked(context.Background(), n)
+	check(err)
+	router := mockrouting.NewServerWithDelay(delayCfg)
+	snet, err := tn.StreamNet(context.Background(), mn, router)
+	check(err)
+	peers = genInstances(n, &mn, &snet)
+	return snet
+	//return tn.VirtualNetwork(mockrouting.NewServerWithDelay(delayCfg), md)
+}
+
+func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance{
+	instances := make([]bs.Instance, 0)
+	for i := 0; i < n; i++{
+		peer, err := testutil.RandIdentity()
+		check(err)
+		_, err = (*mn).AddPeer(peer.PrivateKey(), peer.Address())
+		check(err)
+		bsdelay := delay.Fixed(0)
+		const kWriteCacheElems = 100
+	
+		adapter := (*snet).Adapter(peer)
+		dstore := ds_sync.MutexWrap(datastore2.WithDelay(ds.NewMapDatastore(), bsdelay))
+	
+		bstore, err := blockstore.WriteCached(blockstore.NewBlockstore(ds_sync.MutexWrap(dstore)), kWriteCacheElems)
+		check(err)
+		
+		xchg := bs.New(context.Background(), peer.ID(), adapter, bstore, true).(*bs.Bitswap)
+	
+		inst := bs.NewInstance(peer.ID(), xchg, bstore, bsdelay)
+		//i := bs.Session(context.Background(), snet, peer)
+		instances = append(instances, inst)
+	}
+	(*mn).ConnectAll()
+	return instances
 }
 
 //  Converts config field to delay
