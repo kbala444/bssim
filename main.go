@@ -25,16 +25,13 @@ import (
 	"errors"
 	"log"
 	"time"
-	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	ds_sync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
-	blockstore "github.com/ipfs/go-ipfs/blocks/blockstore"
-	datastore2 "github.com/ipfs/go-ipfs/util/datastore2"
 	//"github.com/ipfs/go-ipfs/util"
 )
 
 var config map[string]string
 var currLine int = 1
 
+var net mocknet.Mocknet
 var peers []bs.Instance
 
 //  Map of files to the keys of the blocks that make it
@@ -61,15 +58,8 @@ func main() {
 	configure(scanner.Text())
 	currLine++
 	
-	net := createTestNetwork()
-	g := bs.NewTestSessionGenerator(net)
-	
-	n, err := strconv.Atoi(config["n"])
-	if err != nil {
-		log.Fatal("Invalid number of nodes.")
-	}
-	
-	peers = spawn(n, &g)
+	net, peers = createTestNetwork()
+		
 	for scanner.Scan() {
 		err := execute(scanner.Text())
 		check(err)
@@ -84,10 +74,10 @@ func main() {
 func configure(cfgString string){
 	//  Initialize config to default values
 	config = map[string]string{
-		"n" : "10",
-		"vv" : "0",
-		"q" : "0",
-		"md" : "0",
+		"node_count" : "10",
+		"visibility_delay" : "0",
+		"query_delay" : "0",
+		//"message_delay" : "0",
 		//"type" : "mock",
 		//  add more options here later
 	}
@@ -271,25 +261,24 @@ func getCmd(nodes []int, block *blocks.Block) error{
 }
 
 //  Creates test network using delays in config
-func createTestNetwork() tn.Network {
-	vv := convertTimeField("vv")
-	q := convertTimeField("q")
-	md := convertTimeField("md")
-	fmt.Println(md)
+//  Returns a fully connected mocknet and an array of the instances in the network
+func createTestNetwork() (mocknet.Mocknet, []bs.Instance) {
+	vv := convertTimeField("visibility_delay")
+	q := convertTimeField("query_delay")
+	//md := convertTimeField("message_delay")
 		
 	delayCfg := mockrouting.DelayConfig{ValueVisibility: vv, Query: q}
-	n, err := strconv.Atoi(config["n"])
+	n, err := strconv.Atoi(config["node_count"])
 	check(err)
 	mn, err := mocknet.FullMeshLinked(context.Background(), n)
 	check(err)
-	router := mockrouting.NewServerWithDelay(delayCfg)
-	snet, err := tn.StreamNet(context.Background(), mn, router)
+	snet, err := tn.StreamNet(context.Background(), mn, mockrouting.NewServerWithDelay(delayCfg))
 	check(err)
-	peers = genInstances(n, &mn, &snet)
-	return snet
-	//return tn.VirtualNetwork(mockrouting.NewServerWithDelay(delayCfg), md)
+	instances := genInstances(n, &mn, &snet)
+	return mn, instances
 }
 
+//  Adds random identities to the mocknet, creates bitswap instances for them, and links + connects them
 func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance{
 	instances := make([]bs.Instance, 0)
 	for i := 0; i < n; i++{
@@ -297,21 +286,10 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance{
 		check(err)
 		_, err = (*mn).AddPeer(peer.PrivateKey(), peer.Address())
 		check(err)
-		bsdelay := delay.Fixed(0)
-		const kWriteCacheElems = 100
-	
-		adapter := (*snet).Adapter(peer)
-		dstore := ds_sync.MutexWrap(datastore2.WithDelay(ds.NewMapDatastore(), bsdelay))
-	
-		bstore, err := blockstore.WriteCached(blockstore.NewBlockstore(ds_sync.MutexWrap(dstore)), kWriteCacheElems)
-		check(err)
-		
-		xchg := bs.New(context.Background(), peer.ID(), adapter, bstore, true).(*bs.Bitswap)
-	
-		inst := bs.NewInstance(peer.ID(), xchg, bstore, bsdelay)
-		//i := bs.Session(context.Background(), snet, peer)
+		inst := bs.Session(context.Background(), *snet, peer)
 		instances = append(instances, inst)
 	}
+	(*mn).LinkAll()
 	(*mn).ConnectAll()
 	return instances
 }

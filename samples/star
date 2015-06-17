@@ -1,6 +1,5 @@
-n:20, vv:1
-[1-19]->0
+node_count:20, visibility_delay:1, query_delay:5
 #0 put samples/test.txt
-#[1-2] get samples/test.txt
+#[1-19] get samples/test.txt
 0 put samples/test.mp3
-1 get samples/test.mp3
+[1-19] get samples/test.mp3
