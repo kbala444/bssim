@@ -12,8 +12,8 @@ import (
 	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 	splitter "github.com/ipfs/go-ipfs/importer/chunk"
 	"bufio"
-    "fmt"
-    "os"
+	"fmt"
+	"os"
 	"strings"
 	"strconv"
 	"errors"
@@ -41,7 +41,7 @@ func main() {
 		file, err = os.Open("samples/star")
 	}
 	
-    check(err)
+	check(err)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	
@@ -77,6 +77,7 @@ func configure(cfgString string){
 		"vv" : "0",
 		"q" : "0",
 		"md" : "0",
+		"bsize": strconv.Itoa(splitter.DefaultBlockSize),
 		//"type" : "mock",
 		//  add more options here later
 	}
@@ -138,8 +139,12 @@ func putFileCmd(node int, file string) error{
 	if err != nil {
 		return fmt.Errorf("Line %d: Failed to open file '%s'.", currLine, file)
 	}
-
-	chunks := splitter.DefaultSplitter.Split(reader)
+	
+	bsize, err := strconv.Atoi(config["bsize"])
+	if err != nil {
+		return fmt.Errorf("Invalid block size in config.")
+	}
+	chunks := (&splitter.SizeSplitter{Size: bsize}).Split(reader)
 	
 	files[file] = make([]key.Key, 0)
 	for chunk := range chunks {
@@ -159,7 +164,7 @@ func putFileCmd(node int, file string) error{
 func getFileCmd(nodes []int, file string) error{
 	blocks, ok := files[file]
 	if !ok {
-		fmt.Println("Tried to get file, '%s', which has not been added.", file)
+		fmt.Printf("Tried to get file, '%s', which has not been added.\n", file)
 		return nil
 	}
 	var wg sync.WaitGroup
