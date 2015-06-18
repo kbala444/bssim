@@ -1,0 +1,12 @@
+node_count:100
+# samples/test.mp3 is the hottest new song all the cool kids are leeching
+0 put samples/test.mp3
+[1-4] get samples/test.mp3
+[2-4] leave 3
+[5-12] get samples/test.mp3
+[5-10] leave 3
+[13-25] get samples/test.mp3
+[9-20] leave 3
+[26-49] get samples/test.mp3
+[28-45] leave 3
+[50-99] get samples/test.mp3

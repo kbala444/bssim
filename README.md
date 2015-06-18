@@ -8,7 +8,7 @@ Possible commands as of now are:
 * `get` - gets file where arg is the file path  
 * `putb` - adds block where arg is the contents of the block  
 * `getb` - gets block where arg is the contents of the block  
-* `leave` - causes nodes to leave network, takes no arguments
+* `leave` - causes nodes to leave network where arg is the number of seconds until the node leaves
 
 There's also a special command to make things easier: `create_dummy_files <# of files> <file size>`  that creates a specified number of files in the samples directory with names dummy(n) and then deletes them when the script finishes.  See `samples/lotsofiles` for an example.  
 

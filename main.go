@@ -45,13 +45,13 @@ func main() {
 	} else if len(os.Args) > 1{
 		file, err = os.Open(os.Args[1])
 	} else {
-		file, err = os.Open("samples/lotsofiles")
+		file, err = os.Open("samples/popularfile")
 	}
 	
     check(err)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-	
+	t := time.Now()
 	//  get first (config) line
 	scanner.Scan()
 	configure(scanner.Text())
@@ -63,6 +63,7 @@ func main() {
 		err := execute(scanner.Text())
 		check(err)
 		currLine++
+		fmt.Println(time.Since(t))
 	}
 	
 	err = scanner.Err()
@@ -105,10 +106,6 @@ func configure(cfgString string){
 
 //  this is getting pretty bad
 func execute(cmdString string) error{
-	if cmdString[0] == '[' && strings.Contains(cmdString, "->"){
-		return connectCmd(cmdString)
-	}
-	
 	//  Check for comment
 	if cmdString[0] == '#'{
 		return nil
@@ -131,56 +128,54 @@ func execute(cmdString string) error{
 	}
 	
 	command := split[1]
-	if node, err := strconv.Atoi(split[0]); err == nil{
-		if len(split) < 3{
-			if (command == "leave"){
-				return leave([]int{node})
-			} else {
-				return fmt.Errorf("Line %d:  Expected leave, found %s.", currLine, command)
-			}
-		}
-		arg := split[2]	
-		//  Command in form "# cmd arg"
-		switch command {
-			case "putb": return putCmd(node, blocks.NewBlock([]byte(arg)))
-			case "getb": return getCmd([]int{node}, blocks.NewBlock([]byte(arg)))
-			case "put": return putFileCmd(node, arg)
-			case "get": return getFileCmd([]int{node}, arg)
-			default: return fmt.Errorf("Error on line %d: expected get or put, found %s.", currLine, command)
-		}
-	} else if cmdString[0] == '[' {
-		//  Command in form "[#-#] get/leave arg"
-		nodes, err := ParseRange(split[0])
-		if err != nil {
-			return err
-		}
-		switch command {
-			case "getb": return getCmd(nodes, blocks.NewBlock([]byte(split[2])))
-			case "get": return getFileCmd(nodes, split[2])
-			case "leave": return leave(nodes)
-			default: return fmt.Errorf("Error on line %d: expected get, found %s.", currLine, command)
-		}
+	arg := split[2]
+
+	//  Command in form "node# get/put/leave arg"
+	nodes := getRange(split[0])
+	switch command {
+		case "putb": return putCmd(nodes, blocks.NewBlock([]byte(arg)))
+		case "put": return putFileCmd(nodes, arg)
+		case "getb": return getCmd(nodes, blocks.NewBlock([]byte(arg)))
+		case "get": return getFileCmd(nodes, arg)
+		case "leave": return leaveCmd(nodes, arg)
+		default: return fmt.Errorf("Error on line %d: expected get/put/leave, found %s.", currLine, command)
 	}
 	
 	return nil
 }
 
 //  Unlinks peers from network
-func leave(nodes []int) error{
-	for _, n := range nodes{
-		currQuitter := peers[n].Peer
-		for _, p := range peers[n+1:]{
-			err := net.UnlinkPeers(currQuitter, p.Peer)
-			if err != nil{
-				return err
+func leaveCmd(nodes []int, afterStr string) error{
+	after, err := strconv.Atoi(afterStr)
+	if err != nil{
+		log.Fatalf("Line %d: Invalid argument to leave.")
+	}
+	time.AfterFunc(time.Second * time.Duration(after), func(){
+		for _, n := range nodes{
+			currQuitter := peers[n].Peer
+			for _, p := range peers[n+1:]{
+				err = net.UnlinkPeers(currQuitter, p.Peer)
+				if err != nil{
+					return
+				}
 			}
 		}
-	}
-	return nil
+	})
+	return err
+//	for _, n := range nodes{
+//		currQuitter := peers[n].Peer
+//		for _, p := range peers[n+1:]{
+//			err := net.UnlinkPeers(currQuitter, p.Peer)
+//			if err != nil{
+//				return err
+//			}
+//		}
+//	}
+//	return nil
 }
 
 //  Chunks file into blocks and adds each block to exchange
-func putFileCmd(node int, file string) error{
+func putFileCmd(nodes []int, file string) error{
 	reader, err := os.Open(file)
 	if err != nil {
 		return fmt.Errorf("Line %d: Failed to open file '%s'.", currLine, file)
@@ -193,21 +188,29 @@ func putFileCmd(node int, file string) error{
 	chunks := (&splitter.SizeSplitter{Size: bsize}).Split(reader)
 	
 	files[file] = make([]key.Key, 0)
+	//  waitgroup for chunks
 	var wg sync.WaitGroup
 	for chunk := range chunks {
 		wg.Add(1)
 		block := blocks.NewBlock(chunk)
 		files[file] = append(files[file], block.Key())
 		go func(block *blocks.Block){
-			err := putCmd(node, block)
-			if err != nil{
-				//  should i recover this maybe?  is this even how you're supposed to use panic?
-				panic(err)
-			}
+			err := putCmd(nodes, block)
+			check(err)
 			wg.Done()
 		}(block)
 	}
 	wg.Wait()
+	return nil
+}
+
+func putCmd(nodes []int, block *blocks.Block) error{
+	for _, node := range nodes{
+		err := peers[node].Exchange.HasBlock(context.Background(), block);
+		if err != nil{
+			return err
+		}
+	}
 	return nil
 }
 
@@ -282,31 +285,6 @@ func testGet(nodes []int, file string){
 	fmt.Println("done checking")
 }
 
-func connectCmd(cmd string) error{
-	split := strings.Split(cmd, "->")
-	connecting, err := ParseRange(split[0])
-	if err != nil  {
-		return fmt.Errorf("Error in line %d: %v\n", currLine, err)
-	}
-	
-	target, err := strconv.Atoi(split[1])
-	if err != nil {
-		return fmt.Errorf("Invalid target node in line:", currLine)
-	}
-	
-	
-	fmt.Println(target, connecting)
-	
-	return nil
-}
-
-func putCmd(node int, block *blocks.Block) error{
-	hasBlock := peers[node]
-	//defer hasBlock.Exchange.Close()
-	err := hasBlock.Exchange.HasBlock(context.Background(), block);
-	return err
-}
-
 func getCmd(nodes []int, block *blocks.Block) error{
 	var wg sync.WaitGroup
 	for _, node := range nodes{
@@ -371,6 +349,22 @@ func convertTimeField(field string) delay.D{
 		log.Fatalf("Invalid value for %s.", field)
 	}
 	return delay.Fixed(time.Duration(val) * time.Millisecond)
+}
+
+func getRange(s string) []int{
+	nodes, err := ParseRange(s)
+	if err != nil {
+		log.Fatalf("Line %d: %v.", currLine, err)
+	}
+	//  todo: refactor all of these node_count conversions into something cleverer
+	n, err := strconv.Atoi(config["node_count"])
+	if err != nil {
+		log.Fatalf("Invalid node_count.")
+	}
+	if (nodes[len(nodes) - 1] > n - 1 || n < 0){
+		log.Fatalf("Line %d: Range out of bounds (max node number is %d).", currLine, n - 1)
+	}	
+	return nodes
 }
 
 //  I should probably find a way to not copy paste this

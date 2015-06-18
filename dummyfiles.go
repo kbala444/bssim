@@ -58,7 +58,7 @@ func (dh *DummyHandler) distributeFiles(peers []bs.Instance){
 		//  get rel path
 		file = file[len(dir) + 1:]
 		n := rand.Intn(len(peers))
-		putFileCmd(n, file)
+		putFileCmd([]int{n}, file)
 	}
 }
 

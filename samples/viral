@@ -1,0 +1,9 @@
+node_count:100, deadline:120
+# samples/test.mp3 is the hottest new song all the cool kids are downloading
+# 25.631s
+0 put samples/test.mp3
+[1-4] get samples/test.mp3
+[5-12] get samples/test.mp3
+[13-25] get samples/test.mp3
+[26-49] get samples/test.mp3
+[50-99] get samples/test.mp3

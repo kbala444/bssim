@@ -1,0 +1,4 @@
+node_count:50
+# node 0 found out about samples/test.mp3 2 years after it came out
+[1-49] put samples/test.mp3
+0 get samples/test.mp3
