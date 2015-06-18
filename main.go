@@ -13,8 +13,6 @@ import (
 	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 	splitter "github.com/ipfs/go-ipfs/importer/chunk"
 	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
-	//peer "github.com/ipfs/go-ipfs/p2p/peer"
-	//p2putil "github.com/ipfs/go-ipfs/p2p/test/util"
 	testutil "github.com/ipfs/go-ipfs/util/testutil"
 	//bsnet "github.com/ipfs/go-ipfs/exchange/bitswap/network"
 	"bufio"
@@ -25,7 +23,6 @@ import (
 	"errors"
 	"log"
 	"time"
-	//"github.com/ipfs/go-ipfs/util"
 )
 
 var config map[string]string
@@ -33,6 +30,8 @@ var currLine int = 1
 
 var net mocknet.Mocknet
 var peers []bs.Instance
+var deadline time.Duration
+var dummy *DummyHandler
 
 //  Map of files to the keys of the blocks that make it
 var files = make(map[string][]key.Key)
@@ -46,7 +45,7 @@ func main() {
 	} else if len(os.Args) > 1{
 		file, err = os.Open(os.Args[1])
 	} else {
-		file, err = os.Open("samples/star")
+		file, err = os.Open("samples/lotsofiles")
 	}
 	
     check(err)
@@ -68,6 +67,11 @@ func main() {
 	
 	err = scanner.Err()
 	check(err)
+	
+	//  Clean up if used
+	if dummy != nil{
+		dummy.DeleteFiles()
+	}
 }
 
 //  Configure simulation based on first line of cmd file
@@ -78,6 +82,7 @@ func configure(cfgString string){
 		"visibility_delay" : "0",
 		"query_delay" : "0",
 		"block_size": strconv.Itoa(splitter.DefaultBlockSize),
+		"deadline" : "60",
 		//"message_delay" : "0",
 		//"type" : "mock",
 		//  add more options here later
@@ -90,47 +95,87 @@ func configure(cfgString string){
 		k, v := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
 		config[k] = v
 	}
+	
+	d, err := strconv.Atoi(config["deadline"])
+	if err != nil{
+		log.Fatalf("Invalid deadline.")
+	}
+	deadline = time.Duration(d) * time.Minute
 }
 
+//  this is getting pretty bad
 func execute(cmdString string) error{
 	if cmdString[0] == '[' && strings.Contains(cmdString, "->"){
 		return connectCmd(cmdString)
 	}
 	
+	//  Check for comment
 	if cmdString[0] == '#'{
 		return nil
 	}
 	
-	//  get/put command
+	//  Check for dummy file command
 	split := strings.Split(cmdString, " ")
-	if len(split) != 3 {
-		return fmt.Errorf("Error on line %d: too few arguments.", currLine)
+	if (split[0] == "create_dummy_files"){
+		numfiles, err := strconv.Atoi(split[1]);
+		if err != nil{
+			log.Fatalf("Line %d: Invalid argument for create_dummy_files.", currLine)
+		}
+		
+		filesize, err := strconv.Atoi(split[2]);
+		if err != nil{
+			log.Fatalf("Line %d: Invalid argument for create_dummy_files.", currLine)
+		}
+		
+		createDummyFiles(numfiles, filesize)
 	}
 	
 	command := split[1]
-	arg := split[2]
 	if node, err := strconv.Atoi(split[0]); err == nil{
+		if len(split) < 3{
+			if (command == "leave"){
+				return leave([]int{node})
+			} else {
+				return fmt.Errorf("Line %d:  Expected leave, found %s.", currLine, command)
+			}
+		}
+		arg := split[2]	
 		//  Command in form "# cmd arg"
 		switch command {
-			case "putb": putCmd(node, blocks.NewBlock([]byte(arg)))
-			case "getb": getCmd([]int{node}, blocks.NewBlock([]byte(arg)))
-			case "put": putFileCmd(node, arg)
-			case "get": getFileCmd([]int{node}, arg)
+			case "putb": return putCmd(node, blocks.NewBlock([]byte(arg)))
+			case "getb": return getCmd([]int{node}, blocks.NewBlock([]byte(arg)))
+			case "put": return putFileCmd(node, arg)
+			case "get": return getFileCmd([]int{node}, arg)
 			default: return fmt.Errorf("Error on line %d: expected get or put, found %s.", currLine, command)
 		}
 	} else if cmdString[0] == '[' {
-		//  Command in form "[#-#] getcmd arg"
+		//  Command in form "[#-#] get/leave arg"
 		nodes, err := ParseRange(split[0])
 		if err != nil {
 			return err
 		}
 		switch command {
-			case "getb": getCmd(nodes, blocks.NewBlock([]byte(arg)))
-			case "get": getFileCmd(nodes, arg)
+			case "getb": return getCmd(nodes, blocks.NewBlock([]byte(split[2])))
+			case "get": return getFileCmd(nodes, split[2])
+			case "leave": return leave(nodes)
 			default: return fmt.Errorf("Error on line %d: expected get, found %s.", currLine, command)
 		}
 	}
 	
+	return nil
+}
+
+//  Unlinks peers from network
+func leave(nodes []int) error{
+	for _, n := range nodes{
+		currQuitter := peers[n].Peer
+		for _, p := range peers[n+1:]{
+			err := net.UnlinkPeers(currQuitter, p.Peer)
+			if err != nil{
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -148,7 +193,9 @@ func putFileCmd(node int, file string) error{
 	chunks := (&splitter.SizeSplitter{Size: bsize}).Split(reader)
 	
 	files[file] = make([]key.Key, 0)
+	var wg sync.WaitGroup
 	for chunk := range chunks {
+		wg.Add(1)
 		block := blocks.NewBlock(chunk)
 		files[file] = append(files[file], block.Key())
 		go func(block *blocks.Block){
@@ -157,31 +204,43 @@ func putFileCmd(node int, file string) error{
 				//  should i recover this maybe?  is this even how you're supposed to use panic?
 				panic(err)
 			}
+			wg.Done()
 		}(block)
 	}
+	wg.Wait()
 	return nil
 }
 
 func getFileCmd(nodes []int, file string) error{
 	blocks, ok := files[file]
 	if !ok {
-		fmt.Printf("Tried to get file, '%s', which has not been added.\n", file)
-		return nil
+		return fmt.Errorf("Tried to get file, '%s', which has not been added.\n", file)
 	}
+	
 	var wg sync.WaitGroup
+	//  Get blocks and then Has them
 	for _, node := range nodes{
-		//  Get blocks and then Has them
+		//  remove blocks peer already has or nah?
+		//  I'm assuming that peers with the first block of the file have the whole file,
+		//  which i think is ok for the simulation, but i might have to change this later
+		alreadyhas, err := peers[node].Blockstore().Has(files[file][0])
+		check(err)
+		if (alreadyhas){
+			continue;
+		}
 		wg.Add(1)
 		go func(i int){
-			ctx, _ := context.WithTimeout(context.Background(), time.Minute)
-			received, err := peers[i].Exchange.GetBlocks(ctx, blocks)
-			if err != nil{
-				panic(err)
-			}
+			ctx, _ := context.WithTimeout(context.Background(), deadline)
+			received, _ := peers[i].Exchange.GetBlocks(ctx, blocks)
+
 			for j := 0; j < len(blocks); j++{
-				ctx, _ := context.WithTimeout(context.Background(), time.Minute)
 				x := <-received
+				if x == nil{
+					wg.Done();
+					return;
+				}	
 				fmt.Println(i, x, j)
+				ctx, _ := context.WithTimeout(context.Background(), time.Second)
 				err := peers[i].Exchange.HasBlock(ctx, x)
 				if err != nil{
 					fmt.Println("error when adding block", i, err)
@@ -204,7 +263,7 @@ func testGet(nodes []int, file string){
 		fmt.Println("Tried check file, '%s', which has not been added.", file)
 		return
 	}
-	fmt.Println("checking")
+	fmt.Println("checking...")
 	var wg sync.WaitGroup
 	for _, node := range nodes{
 		for _, chunk := range chunks{
@@ -213,14 +272,14 @@ func testGet(nodes []int, file string){
 				has, err := peers[i].Blockstore().Has(block)
 				check(err)
 				if !has{
-					fmt.Println("Node %d failed to get block %v", i, block)
+					fmt.Printf("Line %d: Node %d failed to get block %v\n", currLine, i, block)
 				}
 				wg.Done()
 			}(node, chunk)
 		}
 	}
 	wg.Wait()
-	fmt.Println("it's over")
+	fmt.Println("done checking")
 }
 
 func connectCmd(cmd string) error{
@@ -253,7 +312,7 @@ func getCmd(nodes []int, block *blocks.Block) error{
 	for _, node := range nodes{
 		wg.Add(1)
 		go func(i int){
-			ctx, _ := context.WithTimeout(context.Background(), time.Second)
+			ctx, _ := context.WithTimeout(context.Background(), deadline)
 			peers[node].Exchange.GetBlock(ctx, block.Key())
 			fmt.Printf("Gotem from node %d.\n", i)
 			peers[node].Exchange.Close()			
@@ -263,6 +322,12 @@ func getCmd(nodes []int, block *blocks.Block) error{
 
 	wg.Wait()
 	return nil
+}
+
+//  Create and distribute dummy files among existing peers
+func createDummyFiles(n int, size int){
+	dummy = NewDummyHandler(n, size)
+	dummy.distributeFiles(peers)
 }
 
 //  Creates test network using delays in config
@@ -295,7 +360,7 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance{
 		instances = append(instances, inst)
 	}
 	(*mn).LinkAll()
-	(*mn).ConnectAll()
+	//(*mn).ConnectAll()
 	return instances
 }
 

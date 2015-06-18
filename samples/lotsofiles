@@ -1,0 +1,12 @@
+node_count:20, deadline:360
+create_dummy_files 10 5000
+[0-4] get samples/dummy0
+[5-9] get samples/dummy1
+[10-14] get samples/dummy2
+[15-19] get samples/dummy3
+[0-10] get samples/dummy4
+[5-19] get samples/dummy5
+[1-4] get samples/dummy6
+[15-19] get samples/dummy7
+[11-13] get samples/dummy8
+[3-12] get samples/dummy9

@@ -1,0 +1,4 @@
+node_count:100, deadline:360
+# not sure what realistic delays would be
+0 put samples/test.mp3
+[1-50] get samples/test.mp3

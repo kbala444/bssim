@@ -1,0 +1,7 @@
+node_count:5
+#0 put samples/test.txt
+#[1-19] get samples/test.txt
+0 put samples/test.mp3
+[1-2] get samples/test.mp3
+[0-2] leave
+[3-4] get samples/test.mp3
