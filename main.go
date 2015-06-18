@@ -45,7 +45,7 @@ func main() {
 	} else if len(os.Args) > 1{
 		file, err = os.Open(os.Args[1])
 	} else {
-		file, err = os.Open("samples/popularfile")
+		file, err = os.Open("samples/star")
 	}
 	
     check(err)
@@ -89,12 +89,17 @@ func configure(cfgString string){
 		//  add more options here later
 	}
 	
-	opts := strings.Split(cfgString, ",")
-	for _, str := range opts{
-		str = strings.TrimSpace(str)
-		split := strings.Split(str, ":")
-		k, v := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
-		config[k] = v
+	if len(cfgString) > 1{
+		opts := strings.Split(cfgString, ",")
+		for _, str := range opts{
+			str = strings.TrimSpace(str)
+			split := strings.Split(str, ":")
+			if len(split) != 2 {
+				log.Fatalf("Invalid config.")
+			}
+			k, v := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
+			config[k] = v
+		}
 	}
 	
 	d, err := strconv.Atoi(config["deadline"])
@@ -104,14 +109,13 @@ func configure(cfgString string){
 	deadline = time.Duration(d) * time.Minute
 }
 
-//  this is getting pretty bad
 func execute(cmdString string) error{
 	//  Check for comment
 	if cmdString[0] == '#'{
 		return nil
 	}
 	
-	//  Check for dummy file command
+	//  Check for dummy file command, could move some of this into a method in dummyfiles.go
 	split := strings.Split(cmdString, " ")
 	if (split[0] == "create_dummy_files"){
 		numfiles, err := strconv.Atoi(split[1]);
@@ -140,15 +144,13 @@ func execute(cmdString string) error{
 		case "leave": return leaveCmd(nodes, arg)
 		default: return fmt.Errorf("Error on line %d: expected get/put/leave, found %s.", currLine, command)
 	}
-	
-	return nil
 }
 
 //  Unlinks peers from network
 func leaveCmd(nodes []int, afterStr string) error{
 	after, err := strconv.Atoi(afterStr)
 	if err != nil{
-		log.Fatalf("Line %d: Invalid argument to leave.")
+		log.Fatalf("Line %d: Invalid argument to leave.", currLine)
 	}
 	time.AfterFunc(time.Second * time.Duration(after), func(){
 		for _, n := range nodes{
@@ -162,16 +164,6 @@ func leaveCmd(nodes []int, afterStr string) error{
 		}
 	})
 	return err
-//	for _, n := range nodes{
-//		currQuitter := peers[n].Peer
-//		for _, p := range peers[n+1:]{
-//			err := net.UnlinkPeers(currQuitter, p.Peer)
-//			if err != nil{
-//				return err
-//			}
-//		}
-//	}
-//	return nil
 }
 
 //  Chunks file into blocks and adds each block to exchange
@@ -263,7 +255,7 @@ func getFileCmd(nodes []int, file string) error{
 func testGet(nodes []int, file string){
 	chunks, ok := files[file]
 	if !ok {
-		fmt.Println("Tried check file, '%s', which has not been added.", file)
+		fmt.Printf("Tried check file, '%s', which has not been added.\n", file)
 		return
 	}
 	fmt.Println("checking...")
@@ -291,9 +283,9 @@ func getCmd(nodes []int, block *blocks.Block) error{
 		wg.Add(1)
 		go func(i int){
 			ctx, _ := context.WithTimeout(context.Background(), deadline)
-			peers[node].Exchange.GetBlock(ctx, block.Key())
+			peers[i].Exchange.GetBlock(ctx, block.Key())
 			fmt.Printf("Gotem from node %d.\n", i)
-			peers[node].Exchange.Close()			
+			peers[i].Exchange.Close()			
 			wg.Done()
 		}(node)
 	}
