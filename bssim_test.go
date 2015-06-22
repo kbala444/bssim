@@ -2,6 +2,7 @@
 package main
 
 import (
+	"time"
 	"testing"
 	key "github.com/ipfs/go-ipfs/blocks/key"
 	//context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
@@ -110,6 +111,43 @@ func TestGetFileCmd(t *testing.T){
 	err = getFileCmd([]int{1}, "samples/ghost.mp3")
 	if err == nil{
 		t.Error("Somehow got nonexistent file.");
+	}
+}
+
+func TestLeaveCmd(t *testing.T){
+	configure("node_count:2, deadline:0.25")
+	net, peers = createTestNetwork()
+	
+	err := putFileCmd([]int{0}, "samples/test.txt")
+	check(err)
+	
+	err = leaveCmd([]int{0}, "0")
+	check(err)
+	//  wait for node to unlink
+	time.Sleep(time.Millisecond)
+	err = getFileCmd([]int{1}, "samples/test.txt")
+	check(err)		
+	for _, block := range files["samples/test.txt"] {
+		if checkHasBlock([]int{1}, block){
+			t.Error("Peer 1 got file after peer 0 left.")
+		}
+	}
+	
+	configure("node_count:2, deadline:0.25")
+	net, peers = createTestNetwork()
+	
+	err = putFileCmd([]int{0}, "samples/test.txt")
+	check(err)
+	
+	err = leaveCmd([]int{0}, "5")
+	check(err)
+	//  peer 1 should still be able to get the file
+	err = getFileCmd([]int{1}, "samples/test.txt")
+	check(err)		
+	for _, block := range files["samples/test.txt"] {
+		if !checkHasBlock([]int{1}, block){
+			t.Error("Peer 1 couldn't get file.")
+		}
 	}
 }
 

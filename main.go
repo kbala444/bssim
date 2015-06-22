@@ -32,6 +32,7 @@ var net mocknet.Mocknet
 var peers []bs.Instance
 var deadline time.Duration
 var dummy *DummyHandler
+var recorder *Recorder
 
 //  Map of files to the keys of the blocks that make it
 var files = make(map[string][]key.Key)
@@ -39,6 +40,7 @@ var files = make(map[string][]key.Key)
 func main() {
 	var file *os.File
 	var err error
+	recorder = NewRecorder()
 	
 	if len(os.Args) > 2{
 		log.Fatalf("Too many arguments.")
@@ -73,6 +75,7 @@ func main() {
 	if dummy != nil{
 		dummy.DeleteFiles()
 	}
+	recorder.Close()
 }
 
 //  Configure simulation based on first line of cmd file
@@ -102,11 +105,11 @@ func configure(cfgString string){
 		}
 	}
 	
-	d, err := strconv.Atoi(config["deadline"])
+	d, err := strconv.ParseFloat(config["deadline"], 32)
 	if err != nil{
 		log.Fatalf("Invalid deadline.")
 	}
-	deadline = time.Duration(d) * time.Minute
+	deadline = time.Duration(d * 1000) * time.Millisecond
 }
 
 func execute(cmdString string) error{
@@ -152,6 +155,7 @@ func leaveCmd(nodes []int, afterStr string) error{
 	if err != nil{
 		log.Fatalf("Line %d: Invalid argument to leave.", currLine)
 	}
+	
 	time.AfterFunc(time.Second * time.Duration(after), func(){
 		for _, n := range nodes{
 			currQuitter := peers[n].Peer
@@ -225,6 +229,7 @@ func getFileCmd(nodes []int, file string) error{
 		}
 		wg.Add(1)
 		go func(i int){
+			timer := recorder.StartTime(peers[i].Peer.String(), file)
 			ctx, _ := context.WithTimeout(context.Background(), deadline)
 			received, _ := peers[i].Exchange.GetBlocks(ctx, blocks)
 
@@ -241,6 +246,7 @@ func getFileCmd(nodes []int, file string) error{
 					fmt.Println("error when adding block", i, err)
 				}
 			}
+			recorder.EndTime(timer)
 			
 			//	peers[i].Exchange.Close()			
 			wg.Done()
@@ -310,8 +316,7 @@ func createTestNetwork() (mocknet.Mocknet, []bs.Instance) {
 	delayCfg := mockrouting.DelayConfig{ValueVisibility: vv, Query: q}
 	n, err := strconv.Atoi(config["node_count"])
 	check(err)
-	mn, err := mocknet.FullMeshLinked(context.Background(), n)
-	check(err)
+	mn := mocknet.New(context.Background())
 	snet, err := tn.StreamNet(context.Background(), mn, mockrouting.NewServerWithDelay(delayCfg))
 	check(err)
 	instances := genInstances(n, &mn, &snet)

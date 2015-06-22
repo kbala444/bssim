@@ -21,4 +21,4 @@ The fields you can configure are currently:
 * `visibility_delay` - Value visibility delay. The time (ms) taken for a value to be visible in the network (integer, defaults to 0).  
 * `query_delay` - Routing query delay, the time (ms) taken to receive a response from a routing query (integer, defaults to 0).  
 * `block_size` - Block size in bytes (integer, defaults to `splitter.DefaultBlockSize`).
-* `deadline` - Number of seconds it takes for a GetBlocks request to time out (defaults to 60).
+* `deadline` - Number of seconds it takes for a GetBlocks request to time out (float, defaults to 60).

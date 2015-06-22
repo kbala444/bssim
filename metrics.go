@@ -12,26 +12,24 @@ type Recorder struct {
 	currID int
 	times map[int]time.Time
 	log *os.File
-	data stats
+	data map[int]*stats
 }
 
-type stats map[string][]float64
+type stats struct {
+	PeerID string
+	File string
+	Time float64
+	//  downloaded from?
+}
 
 func NewRecorder() *Recorder{
-	var oldData stats
+	//var oldData stats
+	fmt.Println("i want this package")
 	logFile, err := os.Open("stats.json")
 	if os.IsNotExist(err){
 		logFile, err = os.Create("stats.json")
 		if err != nil{
 			log.Fatalf("Could not create stats.json.", err)
-		}
-		oldData = stats{}
-	} else {
-		decoder := json.NewDecoder(logFile)
-		decoder.Decode(&oldData)
-		if oldData == nil{
-			fmt.Println("here")
-			oldData = stats{}
 		}
 	}
 	
@@ -39,7 +37,8 @@ func NewRecorder() *Recorder{
 		currID: 0,
 		times: make(map[int]time.Time),
 		log: logFile,
-		data: oldData,
+		data: make(map[int]*stats),
+		//data: oldData,
 	}
 }
 
@@ -50,24 +49,31 @@ func (r *Recorder) Close(){
 		log.Fatalf("Could not open stats.json for writing.", err)
 	}
 	encoder := json.NewEncoder(logFile)
-	err = encoder.Encode(r.data)
+	values := make([]*stats, 0)
+	for _, v := range r.data{
+		fmt.Println(v)
+		values = append(values, v)
+	}
+	err = encoder.Encode(values)
 	if err != nil{
 		log.Fatalf("Couldn't dump map to stats.json.", err)
 	}
 }
 
-func (r *Recorder) StartTime() int{
+func (r *Recorder) StartTime(pid string, filename string) int{
 	r.currID += 1	
 	r.times[r.currID] = time.Now()
+	r.data[r.currID] = &stats{PeerID: pid, File: filename}
 	return r.currID
 }
 
-func (r *Recorder) EndTime(id int, field string) {
+func (r *Recorder) EndTime(id int) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
-	_, ok := r.data[field]
+	curr, ok := r.data[id]
 	if !ok{
-		r.data[field] = make([]float64, 0)
+		fmt.Println("No matching start time for end time.")
+		return
 	} 
-	r.data[field] = append(r.data[field], elapsed.Seconds())
+	curr.Time = elapsed.Seconds()
 }
