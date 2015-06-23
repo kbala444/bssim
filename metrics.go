@@ -24,7 +24,6 @@ type stats struct {
 
 func NewRecorder() *Recorder{
 	//var oldData stats
-	fmt.Println("i want this package")
 	logFile, err := os.Open("stats.json")
 	if os.IsNotExist(err){
 		logFile, err = os.Create("stats.json")
@@ -51,7 +50,6 @@ func (r *Recorder) Close(){
 	encoder := json.NewEncoder(logFile)
 	values := make([]*stats, 0)
 	for _, v := range r.data{
-		fmt.Println(v)
 		values = append(values, v)
 	}
 	err = encoder.Encode(values)
