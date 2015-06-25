@@ -13,6 +13,7 @@ type Recorder struct {
 	times map[int]time.Time
 	log *os.File
 	data map[int]*stats
+	bi blockInfo
 }
 
 type stats struct {
@@ -20,6 +21,13 @@ type stats struct {
 	File string
 	Time float64
 	//  downloaded from?
+}
+
+type blockInfo struct {
+	totalBlocks int
+	totalTime time.Duration
+	max time.Duration
+	min time.Duration
 }
 
 func NewRecorder() *Recorder{
@@ -58,14 +66,14 @@ func (r *Recorder) Close(){
 	}
 }
 
-func (r *Recorder) StartTime(pid string, filename string) int{
+func (r *Recorder) StartFileTime(pid string, filename string) int{
 	r.currID += 1	
 	r.times[r.currID] = time.Now()
 	r.data[r.currID] = &stats{PeerID: pid, File: filename}
 	return r.currID
 }
 
-func (r *Recorder) EndTime(id int) {
+func (r *Recorder) EndFileTime(id int) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
 	curr, ok := r.data[id]
@@ -74,4 +82,26 @@ func (r *Recorder) EndTime(id int) {
 		return
 	} 
 	curr.Time = elapsed.Seconds()
+}
+
+//  Returns mean block request fulfillment time in ms
+func (r *Recorder) MeanBlockTime() float64{
+	return (r.bi.totalTime.Seconds() * 1000)/float64(r.bi.totalBlocks)
+}
+
+func (r *Recorder) StartBlockTime() int{
+	r.currID += 1
+	r.times[r.currID] = time.Now()
+	r.bi.totalBlocks += 1
+	return r.currID
+}
+
+func (r *Recorder) EndBlockTime(id int) {
+	t := time.Since(r.times[id])
+	r.bi.totalTime += t
+	if t > r.bi.max{
+		r.bi.max = t
+	} else if t < r.bi.min{
+		r.bi.min = t
+	}
 }

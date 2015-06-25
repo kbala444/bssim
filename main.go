@@ -75,6 +75,9 @@ func main() {
 	if dummy != nil{
 		dummy.DeleteFiles()
 	}
+	fmt.Printf("Mean block time: %fms.\n", recorder.MeanBlockTime())
+	//fmt.Printf("Max block time: %fms.\n", recorder.bi.max.Seconds() * 1000)
+	//fmt.Printf("Min block time: %fms.\n", recorder.bi.min.Seconds() * 1000)
 	recorder.Close()
 }
 
@@ -229,16 +232,18 @@ func getFileCmd(nodes []int, file string) error{
 		}
 		wg.Add(1)
 		go func(i int){
-			timer := recorder.StartTime(peers[i].Peer.String(), file)
+			timer := recorder.StartFileTime(peers[i].Peer.String(), file)
 			ctx, _ := context.WithTimeout(context.Background(), deadline)
 			received, _ := peers[i].Exchange.GetBlocks(ctx, blocks)
 
 			for j := 0; j < len(blocks); j++{
+				t := recorder.StartBlockTime()
 				x := <-received
 				if x == nil{
 					wg.Done();
 					return;
 				}	
+				recorder.EndBlockTime(t)
 				fmt.Println(i, x, j)
 				ctx, _ := context.WithTimeout(context.Background(), time.Second)
 				err := peers[i].Exchange.HasBlock(ctx, x)
@@ -246,7 +251,7 @@ func getFileCmd(nodes []int, file string) error{
 					fmt.Println("error when adding block", i, err)
 				}
 			}
-			recorder.EndTime(timer)
+			recorder.EndFileTime(timer)
 			
 			//	peers[i].Exchange.Close()			
 			wg.Done()
