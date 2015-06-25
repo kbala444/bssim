@@ -78,6 +78,8 @@ func main() {
 	fmt.Printf("Mean block time: %fms.\n", recorder.MeanBlockTime())
 	//fmt.Printf("Max block time: %fms.\n", recorder.bi.max.Seconds() * 1000)
 	//fmt.Printf("Min block time: %fms.\n", recorder.bi.min.Seconds() * 1000)
+	fmt.Printf("Total blocks received: %d.\n", TotalBlocksReceived(peers))
+	fmt.Printf("Duplicate blocks received: %d.\n", DupBlocksReceived(peers))
 	recorder.Close()
 }
 

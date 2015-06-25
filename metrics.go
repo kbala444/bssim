@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"log"
+	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 )
 
 type Recorder struct {
@@ -104,4 +105,28 @@ func (r *Recorder) EndBlockTime(id int) {
 	} else if t < r.bi.min{
 		r.bi.min = t
 	}
+}
+
+func TotalBlocksReceived(peers []bs.Instance) int{
+	var blocks int
+	for _, p := range peers{
+		pstat, err := p.Exchange.Stat()
+		if err != nil{
+			fmt.Println("Unable to get stats from peer ", p.Peer)
+		}
+		blocks += pstat.BlocksReceived
+	}
+	return blocks
+}
+
+func DupBlocksReceived(peers []bs.Instance) int{
+	var blocks int
+	for _, p := range peers{
+		pstat, err := p.Exchange.Stat()
+		if err != nil{
+			fmt.Println("Unable to get stats from peer ", p.Peer)
+		}
+		blocks += pstat.DupBlksReceived
+	}
+	return blocks
 }
