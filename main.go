@@ -75,11 +75,7 @@ func main() {
 	if dummy != nil{
 		dummy.DeleteFiles()
 	}
-	fmt.Printf("Mean block time: %fms.\n", recorder.MeanBlockTime())
-	//fmt.Printf("Max block time: %fms.\n", recorder.bi.max.Seconds() * 1000)
-	//fmt.Printf("Min block time: %fms.\n", recorder.bi.min.Seconds() * 1000)
-	fmt.Printf("Total blocks received: %d.\n", TotalBlocksReceived(peers))
-	fmt.Printf("Duplicate blocks received: %d.\n", DupBlocksReceived(peers))
+	reportStats()
 	recorder.Close()
 }
 
@@ -234,18 +230,18 @@ func getFileCmd(nodes []int, file string) error{
 		}
 		wg.Add(1)
 		go func(i int){
-			timer := recorder.StartFileTime(peers[i].Peer.String(), file)
+			timer := recorder.NewTimer()
 			ctx, _ := context.WithTimeout(context.Background(), deadline)
 			received, _ := peers[i].Exchange.GetBlocks(ctx, blocks)
 
 			for j := 0; j < len(blocks); j++{
-				t := recorder.StartBlockTime()
+				t := recorder.NewTimer()
 				x := <-received
 				if x == nil{
 					wg.Done();
 					return;
 				}	
-				recorder.EndBlockTime(t)
+				recorder.EndBlockTime(t, peers[i].Peer)
 				fmt.Println(i, x, j)
 				ctx, _ := context.WithTimeout(context.Background(), time.Second)
 				err := peers[i].Exchange.HasBlock(ctx, x)
@@ -253,7 +249,7 @@ func getFileCmd(nodes []int, file string) error{
 					fmt.Println("error when adding block", i, err)
 				}
 			}
-			recorder.EndFileTime(timer)
+			recorder.EndFileTime(timer, peers[i].Peer.String(), file)
 			
 			//	peers[i].Exchange.Close()			
 			wg.Done()
@@ -420,12 +416,24 @@ func check(e error) {
     }
 }
 
-//  Creates array of n instances using SessionGenerator g
-func spawn(n int, g *bs.SessionGenerator) []bs.Instance {
-	instances := make([]bs.Instance, 0)
-	for j := 0; j < n; j++ {
-		inst := g.Next()
-		instances = append(instances, inst)
+func reportStats(){
+	for num, peer := range peers{
+		s, err := peer.Exchange.Stat()
+		if err != nil{
+			fmt.Println("Couldn't get stats for peer ", peer)
+			continue;
+		}
+		if s.BlocksReceived > 0{
+			mbt, err := recorder.MeanBlockTime(peer)
+			if err != nil{
+				fmt.Println("Error when getting mean time of peer ", peer)
+				continue;
+			}
+			fmt.Printf("Peer %d, %s: %fms mean time, %d blocks, %d duplicate blocks.\n",
+					num, peer.Peer.String(), mbt, s.BlocksReceived, s.DupBlksReceived)
+		}
 	}
-	return instances
+	fmt.Printf("Mean block time: %fms.\n", recorder.TotalMeanBlockTime(peers))
+	fmt.Printf("Total blocks received: %d.\n", TotalBlocksReceived(peers))
+	fmt.Printf("Duplicate blocks received: %d.\n", DupBlocksReceived(peers))
 }

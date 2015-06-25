@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"time"
 	"encoding/json"
 	"os"
 	"log"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
+	"github.com/ipfs/go-ipfs/p2p/peer"
 )
 
 type Recorder struct {
@@ -14,7 +16,8 @@ type Recorder struct {
 	times map[int]time.Time
 	log *os.File
 	data map[int]*stats
-	bi blockInfo
+	//  block info per bs instance
+	bi map[peer.ID]*blockInfo
 }
 
 type stats struct {
@@ -25,7 +28,8 @@ type stats struct {
 }
 
 type blockInfo struct {
-	totalBlocks int
+	//  maybe keep array of all times to graph?
+	//  totalBlocks int
 	totalTime time.Duration
 	max time.Duration
 	min time.Duration
@@ -46,6 +50,7 @@ func NewRecorder() *Recorder{
 		times: make(map[int]time.Time),
 		log: logFile,
 		data: make(map[int]*stats),
+		bi: make(map[peer.ID]*blockInfo),
 		//data: oldData,
 	}
 }
@@ -67,44 +72,61 @@ func (r *Recorder) Close(){
 	}
 }
 
-func (r *Recorder) StartFileTime(pid string, filename string) int{
+//  Creates and starts a new timer.
+//  Returns id of timer which should be given to an EndTime method to stop it and record the time.
+func (r *Recorder) NewTimer() int{
 	r.currID += 1	
 	r.times[r.currID] = time.Now()
-	r.data[r.currID] = &stats{PeerID: pid, File: filename}
 	return r.currID
 }
 
-func (r *Recorder) EndFileTime(id int) {
+//  Accepts a timer ID (given by StartFileTime) and records the elapsed time.
+func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
-	curr, ok := r.data[id]
-	if !ok{
-		fmt.Println("No matching start time for end time.")
-		return
-	} 
-	curr.Time = elapsed.Seconds()
+	r.data[r.currID] = &stats{PeerID: pid, File: filename, Time: elapsed.Seconds()}
 }
 
-//  Returns mean block request fulfillment time in ms
-func (r *Recorder) MeanBlockTime() float64{
-	return (r.bi.totalTime.Seconds() * 1000)/float64(r.bi.totalBlocks)
-}
-
-func (r *Recorder) StartBlockTime() int{
-	r.currID += 1
-	r.times[r.currID] = time.Now()
-	r.bi.totalBlocks += 1
-	return r.currID
-}
-
-func (r *Recorder) EndBlockTime(id int) {
+func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
 	t := time.Since(r.times[id])
-	r.bi.totalTime += t
-	if t > r.bi.max{
-		r.bi.max = t
-	} else if t < r.bi.min{
-		r.bi.min = t
+	delete(r.times, id)
+	curr, ok := r.bi[pid]
+	if !ok{
+		r.bi[pid] = &blockInfo{totalTime:t}
+	} else {
+		curr.totalTime += t
 	}
+}
+
+//  Returns mean block request fulfillment time in ms of a bs instance
+func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error){
+	s, err := inst.Exchange.Stat()
+	if err != nil{
+		return 0, fmt.Errorf("Couldn't get stats for peer %v.", inst.Peer)
+	}
+	if s.BlocksReceived == 0{
+		return 0, errors.New("No blocks for peer.")
+	}
+	return (r.bi[inst.Peer].totalTime.Seconds() * 1000)/float64(s.BlocksReceived), nil
+}
+
+//  Returns mean block request fulfillment time in ms across all bs instances
+func (r *Recorder) TotalMeanBlockTime(insts []bs.Instance) float64{
+	var t time.Duration
+	var b int
+	for _, inst := range insts{
+		s, err := inst.Exchange.Stat()
+		if err != nil{
+			fmt.Println("Couldn't get stats for peer ", inst.Peer)
+			continue
+		}
+		if s.BlocksReceived == 0{
+			continue
+		}
+		t += r.bi[inst.Peer].totalTime
+		b += s.BlocksReceived
+	}
+	return (t.Seconds() * 1000)/float64(b)
 }
 
 func TotalBlocksReceived(peers []bs.Instance) int{
