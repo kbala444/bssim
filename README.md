@@ -10,7 +10,9 @@ Possible commands as of now are:
 * `getb` - gets block where arg is the contents of the block  
 * `leave` - causes nodes to leave network where arg is the number of seconds until the node leaves
 
-There's also a special command to make things easier: `create_dummy_files <# of files> <file size>`  that creates a specified number of files in the samples directory with names dummy(n) and then deletes them when the script finishes.  See `samples/lotsofiles` for an example.  
+There's also a few special commands:
+* `create_dummy_files <# of files> <file size>`  - creates a specified number of files in the samples directory with names dummy(n) and then deletes them when the script finishes (see `samples/lotsofiles` for an example).  
+* `node#->node <latency> <bandwidth>` - assigns a latency and bandwidth to the links between the nodes in node# and node.
 
 ## Config
 The first line of a command file should contain comma separated key value pairs.  
@@ -22,3 +24,5 @@ The fields you can configure are currently:
 * `query_delay` - Routing query delay, the time (ms) taken to receive a response from a routing query (integer, defaults to 0).  
 * `block_size` - Block size in bytes (integer, defaults to `splitter.DefaultBlockSize`).
 * `deadline` - Number of seconds it takes for a GetBlocks request to time out (float, defaults to 60).
+* `bandwidth` - Specifies default bandwidth in megabits/sec for all links.  Can be changed using the `->` command (float, defaults to 100).
+* `latency` - Specifies default latency in milliseconds for all links.  Can be changed using the `->` command (float, defaults to  0).

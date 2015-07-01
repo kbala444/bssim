@@ -14,7 +14,6 @@ import (
 	splitter "github.com/ipfs/go-ipfs/importer/chunk"
 	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
 	testutil "github.com/ipfs/go-ipfs/util/testutil"
-	//bsnet "github.com/ipfs/go-ipfs/exchange/bitswap/network"
 	"bufio"
 	"fmt"
 	"os"
@@ -23,6 +22,8 @@ import (
 	"errors"
 	"log"
 	"time"
+	"net/http"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var config map[string]string
@@ -38,6 +39,7 @@ var recorder *Recorder
 var files = make(map[string][]key.Key)
 
 func main() {
+	fmt.Println(time.Now())
 	var file *os.File
 	var err error
 	recorder = NewRecorder()
@@ -47,25 +49,27 @@ func main() {
 	} else if len(os.Args) > 1{
 		file, err = os.Open(os.Args[1])
 	} else {
-		file, err = os.Open("samples/star")
+		file, err = os.Open("samples/viral")
 	}
 	
     check(err)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-	t := time.Now()
 	//  get first (config) line
 	scanner.Scan()
 	configure(scanner.Text())
 	currLine++
 	
 	net, peers = createTestNetwork()
+	go func(){
+		http.Handle("/metrics", prometheus.Handler())
+		http.ListenAndServe(":8080", nil)
+	}()
 		
 	for scanner.Scan() {
 		err := execute(scanner.Text())
 		check(err)
 		currLine++
-		fmt.Println(time.Since(t))
 	}
 	
 	err = scanner.Err()
@@ -77,6 +81,8 @@ func main() {
 	}
 	reportStats()
 	recorder.Close()
+	fmt.Println(time.Now())
+	
 }
 
 //  Configure simulation based on first line of cmd file
@@ -88,6 +94,8 @@ func configure(cfgString string){
 		"query_delay" : "0",
 		"block_size": strconv.Itoa(splitter.DefaultBlockSize),
 		"deadline" : "60",
+		"latency" : "0",
+		"bandwidth" : "100",
 		//"message_delay" : "0",
 		//"type" : "mock",
 		//  add more options here later
@@ -119,6 +127,10 @@ func execute(cmdString string) error{
 		return nil
 	}
 	
+	if strings.Contains(cmdString, "->") {
+		return connectCmd(cmdString)
+	}
+	
 	//  Check for dummy file command, could move some of this into a method in dummyfiles.go
 	split := strings.Split(cmdString, " ")
 	if (split[0] == "create_dummy_files"){
@@ -148,6 +160,44 @@ func execute(cmdString string) error{
 		case "leave": return leaveCmd(nodes, arg)
 		default: return fmt.Errorf("Error on line %d: expected get/put/leave, found %s.", currLine, command)
 	}
+}
+
+//  node1->node2 latency bw
+func connectCmd(cmd string) error{
+	split := strings.Split(cmd, " ")
+	if len(split) != 3{
+		return fmt.Errorf("Line %d: Invalid number of arguments.", currLine)
+	}
+	nodes := strings.Split(split[0], "->")
+	node1, err := ParseRange(nodes[0])
+	if err != nil{
+		return fmt.Errorf("Line %d: Invalid first node # or range.", currLine)
+	}
+	
+	node2, err := strconv.Atoi(nodes[1])
+	if err != nil{
+		return fmt.Errorf("Line %d: Invalid second node # or range.", currLine)
+	}
+	
+	latencyFloat, err := strconv.ParseFloat(split[1], 64)
+	if err != nil{
+		return fmt.Errorf("Line %d: Invalid latency.", currLine)
+	}
+	
+	latency := time.Millisecond * time.Duration(latencyFloat)
+	
+	bw, err := strconv.ParseFloat(split[2], 64)
+	if err != nil{
+		return fmt.Errorf("Line %d: Invalid bandwidth.", currLine)
+	}
+	
+	for _, node := range node1{
+		links := net.LinksBetweenPeers(peers[node].Peer, peers[node2].Peer)
+		for _, link := range links{
+			link.SetOptions(mocknet.LinkOptions{Bandwidth: bw, Latency: latency})
+		}
+	}
+	return nil
 }
 
 //  Unlinks peers from network
@@ -216,7 +266,6 @@ func getFileCmd(nodes []int, file string) error{
 	if !ok {
 		return fmt.Errorf("Tried to get file, '%s', which has not been added.\n", file)
 	}
-	
 	var wg sync.WaitGroup
 	//  Get blocks and then Has them
 	for _, node := range nodes{
@@ -225,6 +274,7 @@ func getFileCmd(nodes []int, file string) error{
 		//  which i think is ok for the simulation, but i might have to change this later
 		alreadyhas, err := peers[node].Blockstore().Has(files[file][0])
 		check(err)
+			
 		if (alreadyhas){
 			continue;
 		}
@@ -235,13 +285,13 @@ func getFileCmd(nodes []int, file string) error{
 			received, _ := peers[i].Exchange.GetBlocks(ctx, blocks)
 
 			for j := 0; j < len(blocks); j++{
-				t := recorder.NewTimer()
+				blockTimer := recorder.NewTimer()
 				x := <-received
 				if x == nil{
 					wg.Done();
 					return;
 				}	
-				recorder.EndBlockTime(t, peers[i].Peer)
+				recorder.EndBlockTime(blockTimer, peers[i].Peer)
 				fmt.Println(i, x, j)
 				ctx, _ := context.WithTimeout(context.Background(), time.Second)
 				err := peers[i].Exchange.HasBlock(ctx, x)
@@ -337,8 +387,20 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance{
 		inst := bs.Session(context.Background(), *snet, peer)
 		instances = append(instances, inst)
 	}
+	
+	bps, err := strconv.ParseFloat(config["bandwidth"], 64)
+	if err != nil{
+		log.Fatalf("Invalid bandwidth in config.")
+	}
+	//  Convert bandwidth from mbps to bytes/s
+	bps = bps * 1024 * 1024 / 8
+	
+	lat, err := strconv.ParseFloat(config["latency"], 64)
+	if err != nil{
+		log.Fatalf("Invalid latency in config.")
+	}
+	(*mn).SetLinkDefaults(mocknet.LinkOptions{Latency: time.Duration(lat) * time.Millisecond, Bandwidth: bps})
 	(*mn).LinkAll()
-	//(*mn).ConnectAll()
 	return instances
 }
 
@@ -417,6 +479,7 @@ func check(e error) {
 }
 
 func reportStats(){
+	fmt.Println("\n\n==============STATS=============\n\n")
 	for num, peer := range peers{
 		s, err := peer.Exchange.Stat()
 		if err != nil{

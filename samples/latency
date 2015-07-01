@@ -1,0 +1,4 @@
+node_count:10, bandwidth: 5, latency: 30
+0 put samples/test.mp3
+[1-4]->0 20 30
+[1-4] get samples/test.mp3

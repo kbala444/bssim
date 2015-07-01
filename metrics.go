@@ -9,7 +9,30 @@ import (
 	"log"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	"github.com/ipfs/go-ipfs/p2p/peer"
+	prom "github.com/prometheus/client_golang/prometheus"
+	//"net/http"
 )
+
+var (
+	//  NewSummaryVec(opts, ["filename", "pid", "latency", "bandwidth"]
+	fileTimes = prom.NewHistogramVec(prom.HistogramOpts{
+		Name: "file_times_ms",
+		Help: "Time for peer to get a file.",
+		Buckets: prom.LinearBuckets(1, .25, 12),
+	}, []string{"latency", "bandwidth"})
+	
+	blockTimes = prom.NewHistogramVec(prom.HistogramOpts{
+		Name: "block_times_ms",
+		Help: "Time for peer to get a block.",
+		Buckets: prom.ExponentialBuckets(0.005, 10, 10),
+		//Buckets: prom.LinearBuckets(0, .05, 100),
+	}, []string{"latency", "bandwidth"})
+)
+
+func init() {
+	prom.MustRegister(fileTimes)
+	prom.MustRegister(blockTimes)
+}
 
 type Recorder struct {
 	currID int
@@ -44,7 +67,7 @@ func NewRecorder() *Recorder{
 			log.Fatalf("Could not create stats.json.", err)
 		}
 	}
-	
+		
 	return &Recorder{
 		currID: 0,
 		times: make(map[int]time.Time),
@@ -85,17 +108,19 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
 	r.data[r.currID] = &stats{PeerID: pid, File: filename, Time: elapsed.Seconds()}
+	fileTimes.WithLabelValues(config["latency"], config["bandwidth"]).Observe(elapsed.Seconds() * 1000)
 }
 
 func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
-	t := time.Since(r.times[id])
+	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
 	curr, ok := r.bi[pid]
 	if !ok{
-		r.bi[pid] = &blockInfo{totalTime:t}
+		r.bi[pid] = &blockInfo{totalTime:elapsed}
 	} else {
-		curr.totalTime += t
+		curr.totalTime += elapsed
 	}
+	blockTimes.WithLabelValues(config["latency"], config["bandwidth"]).Observe(elapsed.Seconds() * 1000)
 }
 
 //  Returns mean block request fulfillment time in ms of a bs instance

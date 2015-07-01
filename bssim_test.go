@@ -12,6 +12,10 @@ import (
 	"os"
 )
 
+func TestDelays(t *testing.T){
+	
+}
+
 func TestPutBlockCmd(t *testing.T){
 	configure("node_count:1")
 	net, peers = createTestNetwork()
