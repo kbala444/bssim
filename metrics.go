@@ -14,33 +14,44 @@ import (
 )
 
 var (
+	labels = []string{"latency", "bandwidth", "block_size"}
 	//  NewSummaryVec(opts, ["filename", "pid", "latency", "bandwidth"]
 	fileTimes = prom.NewHistogramVec(prom.HistogramOpts{
 		Name: "file_times_ms",
 		Help: "Time for peer to get a file.",
 		Buckets: prom.LinearBuckets(1, .25, 12),
-	}, []string{"latency", "bandwidth"})
+	}, labels)
 	
 	blockTimes = prom.NewHistogramVec(prom.HistogramOpts{
 		Name: "block_times_ms",
 		Help: "Time for peer to get a block.",
 		Buckets: prom.ExponentialBuckets(0.005, 10, 10),
 		//Buckets: prom.LinearBuckets(0, .05, 100),
-	}, []string{"latency", "bandwidth"})
+	}, labels)
+	
+	dupBlocks = prom.NewGaugeVec(prom.GaugeOpts{
+		Name: "dup_blocks_count",
+		Help: "Count of total duplicate blocks received.",
+	}, labels)
+	
+	currLables prom.Labels
 )
 
 func init() {
 	prom.MustRegister(fileTimes)
 	prom.MustRegister(blockTimes)
+	prom.MustRegister(dupBlocks)
 }
 
 type Recorder struct {
+	createdAt time.Time
 	currID int
 	times map[int]time.Time
 	log *os.File
 	data map[int]*stats
 	//  block info per bs instance
 	bi map[peer.ID]*blockInfo
+	currLables []string
 }
 
 type stats struct {
@@ -69,6 +80,7 @@ func NewRecorder() *Recorder{
 	}
 		
 	return &Recorder{
+		createdAt: time.Now(),
 		currID: 0,
 		times: make(map[int]time.Time),
 		log: logFile,
@@ -108,7 +120,8 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
 	r.data[r.currID] = &stats{PeerID: pid, File: filename, Time: elapsed.Seconds()}
-	fileTimes.WithLabelValues(config["latency"], config["bandwidth"]).Observe(elapsed.Seconds() * 1000)
+	fileTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
+	updateDupBlocks()
 }
 
 func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
@@ -120,7 +133,8 @@ func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
 	} else {
 		curr.totalTime += elapsed
 	}
-	blockTimes.WithLabelValues(config["latency"], config["bandwidth"]).Observe(elapsed.Seconds() * 1000)
+	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
+	//updateDupBlocks()
 }
 
 //  Returns mean block request fulfillment time in ms of a bs instance
@@ -133,6 +147,10 @@ func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error){
 		return 0, errors.New("No blocks for peer.")
 	}
 	return (r.bi[inst.Peer].totalTime.Seconds() * 1000)/float64(s.BlocksReceived), nil
+}
+
+func (r *Recorder) ElapsedTime() string{
+	return time.Since(r.createdAt).String()
 }
 
 //  Returns mean block request fulfillment time in ms across all bs instances
@@ -176,4 +194,28 @@ func DupBlocksReceived(peers []bs.Instance) int{
 		blocks += pstat.DupBlksReceived
 	}
 	return blocks
+}
+
+func getLabels() prom.Labels {
+	if currLables != nil{
+		return currLables
+	}
+		
+	currLables := make(map[string]string, 0)
+	for _, label := range labels{
+		currLables[label] = config[label]
+	}
+	return currLables
+}
+
+func updateDupBlocks() {
+	var blocks int
+	for _, p := range peers{
+		pstat, err := p.Exchange.Stat()
+		if err != nil{
+			fmt.Println("Unable to get stats from peer ", p.Peer)
+		}
+		blocks += pstat.BlocksReceived
+	}
+	dupBlocks.With(getLabels()).Set(float64(blocks))
 }

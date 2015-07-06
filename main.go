@@ -28,7 +28,6 @@ import (
 
 var config map[string]string
 var currLine int = 1
-
 var net mocknet.Mocknet
 var peers []bs.Instance
 var deadline time.Duration
@@ -95,7 +94,7 @@ func configure(cfgString string){
 		"block_size": strconv.Itoa(splitter.DefaultBlockSize),
 		"deadline" : "60",
 		"latency" : "0",
-		"bandwidth" : "100",
+		"bandwidth" : "1000",
 		//"message_delay" : "0",
 		//"type" : "mock",
 		//  add more options here later
@@ -191,9 +190,12 @@ func connectCmd(cmd string) error{
 		return fmt.Errorf("Line %d: Invalid bandwidth.", currLine)
 	}
 	
+	//  convert bw from mbps to bps
+	bw = bw * 1024 * 1024 / 8
 	for _, node := range node1{
 		links := net.LinksBetweenPeers(peers[node].Peer, peers[node2].Peer)
 		for _, link := range links{
+			fmt.Println(mocknet.LinkOptions{Bandwidth: bw, Latency: latency})
 			link.SetOptions(mocknet.LinkOptions{Bandwidth: bw, Latency: latency})
 		}
 	}
@@ -499,4 +501,5 @@ func reportStats(){
 	fmt.Printf("Mean block time: %fms.\n", recorder.TotalMeanBlockTime(peers))
 	fmt.Printf("Total blocks received: %d.\n", TotalBlocksReceived(peers))
 	fmt.Printf("Duplicate blocks received: %d.\n", DupBlocksReceived(peers))
+	fmt.Printf("Total time: %s.\n", recorder.ElapsedTime())
 }

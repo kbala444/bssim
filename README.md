@@ -12,7 +12,7 @@ Possible commands as of now are:
 
 There's also a few special commands:
 * `create_dummy_files <# of files> <file size>`  - creates a specified number of files in the samples directory with names dummy(n) and then deletes them when the script finishes (see `samples/lotsofiles` for an example).  
-* `node#->node <latency> <bandwidth>` - assigns a latency and bandwidth to the links between the nodes in node# and node.
+* `node#->node <latency> <bandwidth>` - assigns a latency and bandwidth to the links between the nodes in node# and node (floats, ms and megabits per second).
 
 ## Config
 The first line of a command file should contain comma separated key value pairs.  
@@ -26,3 +26,10 @@ The fields you can configure are currently:
 * `deadline` - Number of seconds it takes for a GetBlocks request to time out (float, defaults to 60).
 * `bandwidth` - Specifies default bandwidth in megabits/sec for all links.  Can be changed using the `->` command (float, defaults to 100).
 * `latency` - Specifies default latency in milliseconds for all links.  Can be changed using the `->` command (float, defaults to  0).
+
+## Metrics
+Prometheus metrics are pushed to [localhost:8080/metrics](localhost:8080/metrics).
+Current metrics collected are:
+* `file_times_ms`
+* `block_times_ms`
+* `dup_blocks_count`
