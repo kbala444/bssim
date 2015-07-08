@@ -4,13 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"encoding/json"
-	"os"
-	"log"
+	//"log"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	"github.com/ipfs/go-ipfs/p2p/peer"
 	prom "github.com/prometheus/client_golang/prometheus"
-	//"net/http"
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -35,76 +34,67 @@ var (
 	}, labels)
 	
 	currLables prom.Labels
+	
 )
 
 func init() {
 	prom.MustRegister(fileTimes)
 	prom.MustRegister(blockTimes)
 	prom.MustRegister(dupBlocks)
+	
 }
 
 type Recorder struct {
 	createdAt time.Time
 	currID int
 	times map[int]time.Time
-	log *os.File
-	data map[int]*stats
-	//  block info per bs instance
-	bi map[peer.ID]*blockInfo
+	rid int
 	currLables []string
+	db *sql.DB
+	stmnts map[string]*sql.Stmt
 }
 
-type stats struct {
-	PeerID string
-	File string
-	Time float64
-	//  downloaded from?
-}
-
-type blockInfo struct {
-	//  maybe keep array of all times to graph?
-	//  totalBlocks int
-	totalTime time.Duration
-	max time.Duration
-	min time.Duration
-}
-
-func NewRecorder() *Recorder{
-	//var oldData stats
-	logFile, err := os.Open("stats.json")
-	if os.IsNotExist(err){
-		logFile, err = os.Create("stats.json")
-		if err != nil{
-			log.Fatalf("Could not create stats.json.", err)
-		}
-	}
+//  assumes configure in main.go has been ran which i should fix
+func NewRecorder(dbPath string) *Recorder{	
+	db, err := sql.Open("sqlite3", dbPath)
+    check(err)
+	
+	s := make(map[string]*sql.Stmt)
+	blockTimesStmt, err := db.Prepare("INSERT INTO block_times(timestamp, time, runid, peerid) values(?, ?, ?, ?)")
+	check(err)
+	
+	s["block_times"] = blockTimesStmt
 		
+	//  get last runid
+	var runs sql.NullInt64
+	err = db.QueryRow("SELECT MAX(runid) FROM runs").Scan(&runs)
+	check(err)
+	if !runs.Valid {
+		runs.Int64 = 0
+	} else {
+		//  go to next run
+		runs.Int64++
+	}
+	
+	//  oh god
+	db.Exec(`INSERT INTO runs(runid, node_count, visibility_delay, query_delay,
+			block_size, deadline, bandwidth, latency, duration, dup_blocks) values(?,
+			?, ?, ?, ?, ?, ?, ?, ?, ?)`, runs.Int64, config["node_count"], config["visibility_delay"],
+			config["query_delay"], config["block_size"], config["deadline"], config["bandwidth"],
+			config["latency"], config["duration"], config["dup_blocks"])
+	
 	return &Recorder{
 		createdAt: time.Now(),
 		currID: 0,
 		times: make(map[int]time.Time),
-		log: logFile,
-		data: make(map[int]*stats),
-		bi: make(map[peer.ID]*blockInfo),
-		//data: oldData,
+		rid: int(runs.Int64),
+		db: db,
+		stmnts: s,
 	}
 }
 
 func (r *Recorder) Close(){
-	r.log.Close()
-	logFile, err := os.Create("stats.json")
-	if err != nil{
-		log.Fatalf("Could not open stats.json for writing.", err)
-	}
-	encoder := json.NewEncoder(logFile)
-	values := make([]*stats, 0)
-	for _, v := range r.data{
-		values = append(values, v)
-	}
-	err = encoder.Encode(values)
-	if err != nil{
-		log.Fatalf("Couldn't dump map to stats.json.", err)
-	}
+	
 }
 
 //  Creates and starts a new timer.
@@ -119,7 +109,6 @@ func (r *Recorder) NewTimer() int{
 func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
-	r.data[r.currID] = &stats{PeerID: pid, File: filename, Time: elapsed.Seconds()}
 	fileTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
 	updateDupBlocks()
 }
@@ -127,13 +116,10 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
-	curr, ok := r.bi[pid]
-	if !ok{
-		r.bi[pid] = &blockInfo{totalTime:elapsed}
-	} else {
-		curr.totalTime += elapsed
-	}
 	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
+	t := elapsed.Seconds() * 1000
+	tstamp := time.Now().UnixNano() / 1000
+	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid.String())
 	//updateDupBlocks()
 }
 
@@ -146,7 +132,8 @@ func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error){
 	if s.BlocksReceived == 0{
 		return 0, errors.New("No blocks for peer.")
 	}
-	return (r.bi[inst.Peer].totalTime.Seconds() * 1000)/float64(s.BlocksReceived), nil
+	return 20, nil
+	//return (r.bi[inst.Peer].totalTime.Seconds() * 1000)/float64(s.BlocksReceived), nil
 }
 
 func (r *Recorder) ElapsedTime() string{
@@ -155,7 +142,6 @@ func (r *Recorder) ElapsedTime() string{
 
 //  Returns mean block request fulfillment time in ms across all bs instances
 func (r *Recorder) TotalMeanBlockTime(insts []bs.Instance) float64{
-	var t time.Duration
 	var b int
 	for _, inst := range insts{
 		s, err := inst.Exchange.Stat()
@@ -166,10 +152,11 @@ func (r *Recorder) TotalMeanBlockTime(insts []bs.Instance) float64{
 		if s.BlocksReceived == 0{
 			continue
 		}
-		t += r.bi[inst.Peer].totalTime
+		//t += r.bi[inst.Peer].totalTime
 		b += s.BlocksReceived
 	}
-	return (t.Seconds() * 1000)/float64(b)
+	return float64(b)
+	//return (t.Seconds() * 1000)/float64(b)
 }
 
 func TotalBlocksReceived(peers []bs.Instance) int{

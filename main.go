@@ -41,14 +41,13 @@ func main() {
 	fmt.Println(time.Now())
 	var file *os.File
 	var err error
-	recorder = NewRecorder()
 	
 	if len(os.Args) > 2{
 		log.Fatalf("Too many arguments.")
 	} else if len(os.Args) > 1{
 		file, err = os.Open(os.Args[1])
 	} else {
-		file, err = os.Open("samples/viral")
+		file, err = os.Open("samples/star")
 	}
 	
     check(err)
@@ -57,6 +56,8 @@ func main() {
 	//  get first (config) line
 	scanner.Scan()
 	configure(scanner.Text())
+	recorder = NewRecorder("data/metrics")
+	
 	currLine++
 	
 	net, peers = createTestNetwork()
