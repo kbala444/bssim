@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"errors"
 	"fmt"
 	"time"
@@ -34,14 +35,12 @@ var (
 	}, labels)
 	
 	currLables prom.Labels
-	
 )
 
 func init() {
 	prom.MustRegister(fileTimes)
 	prom.MustRegister(blockTimes)
-	prom.MustRegister(dupBlocks)
-	
+	prom.MustRegister(dupBlocks)	
 }
 
 type Recorder struct {
@@ -93,8 +92,15 @@ func NewRecorder(dbPath string) *Recorder{
 	}
 }
 
+//  Update current run info with duplicate blocks and duration stats
 func (r *Recorder) Close(){
+	//  record data here
+	duration := time.Since(r.createdAt)
+	dup := DupBlocksReceived(peers)
 	
+	_, err := r.db.Exec("UPDATE runs SET duration=?, dup_blocks=? WHERE runid=?",
+						duration, dup, r.rid)
+	check(err)
 }
 
 //  Creates and starts a new timer.
@@ -119,11 +125,11 @@ func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
 	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
 	t := elapsed.Seconds() * 1000
 	tstamp := time.Now().UnixNano() / 1000
-	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid.String())
+	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid.Pretty())
 	//updateDupBlocks()
 }
 
-//  Returns mean block request fulfillment time in ms of a bs instance
+//  Returns mean block request fulfillment time of an instance in ms
 func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error){
 	s, err := inst.Exchange.Stat()
 	if err != nil{
@@ -132,8 +138,8 @@ func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error){
 	if s.BlocksReceived == 0{
 		return 0, errors.New("No blocks for peer.")
 	}
-	return 20, nil
-	//return (r.bi[inst.Peer].totalTime.Seconds() * 1000)/float64(s.BlocksReceived), nil
+	
+	return r.sumBlockTimesForPeer(inst.Peer)/float64(s.BlocksReceived), nil
 }
 
 func (r *Recorder) ElapsedTime() string{
@@ -152,11 +158,27 @@ func (r *Recorder) TotalMeanBlockTime(insts []bs.Instance) float64{
 		if s.BlocksReceived == 0{
 			continue
 		}
-		//t += r.bi[inst.Peer].totalTime
 		b += s.BlocksReceived
 	}
-	return float64(b)
-	//return (t.Seconds() * 1000)/float64(b)
+	return r.sumBlockTimes()/float64(b)
+}
+
+//  Sums all block times of this run
+func (r *Recorder) sumBlockTimes() float64{
+	var t float64
+	row := r.db.QueryRow("SELECT SUM(time) FROM block_times WHERE runid=" + strconv.Itoa(r.rid))
+	err := row.Scan(&t)
+	check(err)
+	return t
+}
+
+func (r *Recorder) sumBlockTimesForPeer(pid peer.ID) float64{
+	var t float64
+	query := `SELECT SUM(time) FROM block_times WHERE peerid="` + pid.Pretty() + `"AND runid=` + strconv.Itoa(r.rid)
+	row := r.db.QueryRow(query)
+	err := row.Scan(&t)
+	check(err)
+	return t
 }
 
 func TotalBlocksReceived(peers []bs.Instance) int{
@@ -206,3 +228,18 @@ func updateDupBlocks() {
 	}
 	dupBlocks.With(getLabels()).Set(float64(blocks))
 }
+
+//func BulkInsert(unsavedRows []*ExampleRowStruct) error {
+//    valueStrings := make([]string, 0, len(unsavedRows))
+//    valueArgs := make([]interface{}, 0, len(unsavedRows) * 3)
+//    for _, post := range unsavedRows {
+//        valueStrings = append(valueStrings, "(?, ?, ?)")
+//        valueArgs = append(valueArgs, post.Column1)
+//        valueArgs = append(valueArgs, post.Column2)
+//        valueArgs = append(valueArgs, post.Column3)
+//    }
+//    stmt := fmt.Sprintf("INSERT INTO my_sample_table (column1, column2, column3) VALUES %s", strings.Join(valueStrings, ","))
+//    _, err := db.Exec(stmt, valueArgs...)
+//    return err
+//}
+

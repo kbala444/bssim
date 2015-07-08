@@ -1,5 +1,5 @@
-node_count:20, latency: 0
+node_count:20, latency: 5
 #0 put samples/test.txt
 #[1-19] get samples/test.txt
 0 put samples/test.mp3
-[1-19] get samples/test.mp3
+[1-2] get samples/test.mp3
