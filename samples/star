@@ -1,0 +1,5 @@
+node_count:10, latency: 1, bandwidth: 1000
+#0 put samples/test.txt
+#[1-19] get samples/test.txt
+0 put samples/test.mp3
+[1-9] get samples/test.mp3

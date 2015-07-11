@@ -2,4 +2,3 @@ stats.json
 netvis.go
 data/metrics
 bssim
-samples/star

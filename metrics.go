@@ -1,11 +1,11 @@
 package main
 
 import (
+	//"log"
 	"strconv"
 	"errors"
 	"fmt"
 	"time"
-	//"log"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	"github.com/ipfs/go-ipfs/p2p/peer"
 	prom "github.com/prometheus/client_golang/prometheus"
@@ -50,6 +50,8 @@ type Recorder struct {
 	rid int
 	currLables []string
 	db *sql.DB
+	//  main transaction
+	tx *sql.Tx
 	stmnts map[string]*sql.Stmt
 }
 
@@ -59,7 +61,9 @@ func NewRecorder(dbPath string) *Recorder{
     check(err)
 	
 	s := make(map[string]*sql.Stmt)
-	blockTimesStmt, err := db.Prepare("INSERT INTO block_times(timestamp, time, runid, peerid) values(?, ?, ?, ?)")
+	tx, err := db.Begin()
+	check(err)
+	blockTimesStmt, err := tx.Prepare("INSERT INTO block_times(timestamp, time, runid, peerid) values(?, ?, ?, ?)")
 	check(err)
 	
 	s["block_times"] = blockTimesStmt
@@ -73,14 +77,7 @@ func NewRecorder(dbPath string) *Recorder{
 	} else {
 		//  go to next run
 		runs.Int64++
-	}
-	
-	//  oh god
-	db.Exec(`INSERT INTO runs(runid, node_count, visibility_delay, query_delay,
-			block_size, deadline, bandwidth, latency, duration, dup_blocks) values(?,
-			?, ?, ?, ?, ?, ?, ?, ?, ?)`, runs.Int64, config["node_count"], config["visibility_delay"],
-			config["query_delay"], config["block_size"], config["deadline"], config["bandwidth"],
-			config["latency"], config["duration"], config["dup_blocks"])
+	}				
 	
 	return &Recorder{
 		createdAt: time.Now(),
@@ -88,18 +85,26 @@ func NewRecorder(dbPath string) *Recorder{
 		times: make(map[int]time.Time),
 		rid: int(runs.Int64),
 		db: db,
+		tx: tx,
 		stmnts: s,
 	}
 }
 
 //  Update current run info with duplicate blocks and duration stats
-func (r *Recorder) Close(){
+func (r *Recorder) Close(workload string){
 	//  record data here
 	duration := time.Since(r.createdAt)
 	dup := DupBlocksReceived(peers)
 	
-	_, err := r.db.Exec("UPDATE runs SET duration=?, dup_blocks=? WHERE runid=?",
-						duration, dup, r.rid)
+	//  oh god
+	_, err := r.tx.Exec(`INSERT INTO runs(runid, node_count, visibility_delay, query_delay,
+			block_size, deadline, bandwidth, latency, duration, dup_blocks, workload) values(?,
+			?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.rid, config["node_count"], config["visibility_delay"],
+			config["query_delay"], config["block_size"], config["deadline"], config["bandwidth"],
+			config["latency"], duration, dup, workload)
+	check(err)
+		
+	err = r.tx.Commit()
 	check(err)
 }
 
@@ -119,13 +124,14 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	updateDupBlocks()
 }
 
-func (r *Recorder) EndBlockTime(id int, pid peer.ID) {
+//  Ends timer with given id and records data for peer with given pretty id
+func (r *Recorder) EndBlockTime(id int, pid string) {
 	elapsed := time.Since(r.times[id])
 	delete(r.times, id)
 	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
 	t := elapsed.Seconds() * 1000
-	tstamp := time.Now().UnixNano() / 1000
-	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid.Pretty())
+	tstamp := (time.Now().UnixNano() - r.createdAt.UnixNano()) / 1000
+	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid)
 	//updateDupBlocks()
 }
 
@@ -139,7 +145,11 @@ func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error){
 		return 0, errors.New("No blocks for peer.")
 	}
 	
-	return r.sumBlockTimesForPeer(inst.Peer)/float64(s.BlocksReceived), nil
+	sum, err := r.sumBlockTimesForPeer(inst.Peer)
+	if err != nil{
+		return 0, err
+	}
+	return sum/float64(s.BlocksReceived), nil
 }
 
 func (r *Recorder) ElapsedTime() string{
@@ -172,13 +182,15 @@ func (r *Recorder) sumBlockTimes() float64{
 	return t
 }
 
-func (r *Recorder) sumBlockTimesForPeer(pid peer.ID) float64{
+func (r *Recorder) sumBlockTimesForPeer(pid peer.ID) (float64, error){
 	var t float64
 	query := `SELECT SUM(time) FROM block_times WHERE peerid="` + pid.Pretty() + `"AND runid=` + strconv.Itoa(r.rid)
 	row := r.db.QueryRow(query)
 	err := row.Scan(&t)
-	check(err)
-	return t
+	if err != nil{
+		return 0, err
+	}
+	return t, nil
 }
 
 func TotalBlocksReceived(peers []bs.Instance) int{
@@ -228,18 +240,3 @@ func updateDupBlocks() {
 	}
 	dupBlocks.With(getLabels()).Set(float64(blocks))
 }
-
-//func BulkInsert(unsavedRows []*ExampleRowStruct) error {
-//    valueStrings := make([]string, 0, len(unsavedRows))
-//    valueArgs := make([]interface{}, 0, len(unsavedRows) * 3)
-//    for _, post := range unsavedRows {
-//        valueStrings = append(valueStrings, "(?, ?, ?)")
-//        valueArgs = append(valueArgs, post.Column1)
-//        valueArgs = append(valueArgs, post.Column2)
-//        valueArgs = append(valueArgs, post.Column3)
-//    }
-//    stmt := fmt.Sprintf("INSERT INTO my_sample_table (column1, column2, column3) VALUES %s", strings.Join(valueStrings, ","))
-//    _, err := db.Exec(stmt, valueArgs...)
-//    return err
-//}
-
