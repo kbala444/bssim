@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	//"log"
 	"strconv"
 	"errors"
@@ -52,7 +53,9 @@ type Recorder struct {
 	db *sql.DB
 	//  main transaction
 	tx *sql.Tx
+	//  map of table names to prepared sql statements for them
 	stmnts map[string]*sql.Stmt
+	newTimerMutex *sync.Mutex
 }
 
 //  assumes configure in main.go has been ran which i should fix
@@ -63,10 +66,15 @@ func NewRecorder(dbPath string) *Recorder{
 	s := make(map[string]*sql.Stmt)
 	tx, err := db.Begin()
 	check(err)
+	
 	blockTimesStmt, err := tx.Prepare("INSERT INTO block_times(timestamp, time, runid, peerid) values(?, ?, ?, ?)")
 	check(err)
 	
+	fileTimesStmt, err := tx.Prepare("INSERT INTO file_times(timestamp, time, runid, peerid, size) values(?, ?, ?, ?, ?)")
+	check(err)
+	
 	s["block_times"] = blockTimesStmt
+	s["file_times"] = fileTimesStmt
 		
 	//  get last runid
 	var runs sql.NullInt64
@@ -87,6 +95,7 @@ func NewRecorder(dbPath string) *Recorder{
 		db: db,
 		tx: tx,
 		stmnts: s,
+		newTimerMutex: &sync.Mutex{},
 	}
 }
 
@@ -111,26 +120,45 @@ func (r *Recorder) Close(workload string){
 //  Creates and starts a new timer.
 //  Returns id of timer which should be given to an EndTime method to stop it and record the time.
 func (r *Recorder) NewTimer() int{
+	r.newTimerMutex.Lock()
 	r.currID += 1	
+	r.newTimerMutex.Unlock()
+	
 	r.times[r.currID] = time.Now()
 	return r.currID
 }
 
 //  Accepts a timer ID (given by StartFileTime) and records the elapsed time.
 func (r *Recorder) EndFileTime(id int, pid string, filename string) {
+	tstamp := (r.times[id].UnixNano() - r.createdAt.UnixNano()) / 1000
+	
 	elapsed := time.Since(r.times[id])
+	t := elapsed.Seconds()
 	delete(r.times, id)
+	
 	fileTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
+	
+	//  how to best get file size without opening it?
+	bs, err := strconv.Atoi(config["block_size"])
+	check(err)
+	//  multiply block size with # of blocks that make file to get file size...
+	fsize := bs * len(files[filename])
+	
+	r.stmnts["file_times"].Exec(tstamp, t, r.rid, pid, fsize)
 	updateDupBlocks()
 }
 
 //  Ends timer with given id and records data for peer with given pretty id
 func (r *Recorder) EndBlockTime(id int, pid string) {
+	tstamp := (r.times[id].UnixNano() - r.createdAt.UnixNano()) / 1000
+	//tstamp := (time.Now().UnixNano() - recorder.CreatedAt.UnixNano()) / 1000
+	
 	elapsed := time.Since(r.times[id])
-	delete(r.times, id)
-	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
 	t := elapsed.Seconds() * 1000
-	tstamp := (time.Now().UnixNano() - r.createdAt.UnixNano()) / 1000
+	delete(r.times, id)
+	
+	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
+	
 	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid)
 	//updateDupBlocks()
 }

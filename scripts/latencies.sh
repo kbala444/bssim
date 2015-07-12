@@ -1,10 +1,10 @@
 #!/bin/bash
-latencies=( 0 1 2 3 5 8 10 15 25 40 )
+. common.sh
 cd ..
 for i in "${latencies[@]}"
 do
     echo $i
-    sed -i "s/latency:[ ]*[0-9]\+/latency: $i/g" samples/star
-    ./bssim samples/star
+    replaceOpt $1 "latency" $i
+    ./bssim ./$1
 done
 
