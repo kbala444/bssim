@@ -115,6 +115,7 @@ func (r *Recorder) Close(workload string){
 		
 	err = r.tx.Commit()
 	check(err)
+	r.db.Close()
 }
 
 //  Creates and starts a new timer.
