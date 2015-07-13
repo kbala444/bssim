@@ -79,6 +79,15 @@ func main() {
 	if dummy != nil{
 		dummy.DeleteFiles()
 	}
+	
+//	c := make(chan os.Signal)
+//	signal.Notify(c, os.Interrupt)
+//	go func(){
+//	    for sig := range c {
+//			recorder.Close(file.Name())
+//	        // sig is a ^C, handle it
+//	    }
+//	}()
 	recorder.Close(file.Name())
 	reportStats()
 	fmt.Println(time.Now())

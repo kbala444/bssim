@@ -99,6 +99,11 @@ func NewRecorder(dbPath string) *Recorder{
 	}
 }
 
+//  Closes db without recording half finished run
+func (r *Recorder) Kill(){
+	r.db.Close()
+}
+
 //  Update current run info with duplicate blocks and duration stats
 func (r *Recorder) Close(workload string){
 	//  record data here

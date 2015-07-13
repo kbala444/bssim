@@ -2,3 +2,5 @@ stats.json
 netvis.go
 data/metrics
 bssim
+*.pyc
+*-journal
