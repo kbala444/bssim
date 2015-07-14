@@ -120,6 +120,8 @@ func (r *Recorder) Close(workload string){
 		
 	err = r.tx.Commit()
 	check(err)
+	
+	r.ReportStats()
 	r.db.Close()
 }
 
@@ -273,4 +275,28 @@ func updateDupBlocks() {
 		blocks += pstat.BlocksReceived
 	}
 	dupBlocks.With(getLabels()).Set(float64(blocks))
+}
+
+func (r *Recorder) ReportStats(){
+	fmt.Println("\n\n==============STATS=============\n\n")
+	for num, peer := range peers{
+		s, err := peer.Exchange.Stat()
+		if err != nil{
+			fmt.Println("Couldn't get stats for peer ", peer)
+			continue;
+		}
+		if s.BlocksReceived > 0{
+			mbt, err := recorder.MeanBlockTime(peer)
+			if err != nil{
+				fmt.Println("Error when getting mean time of peer ", peer)
+				continue;
+			}
+			fmt.Printf("Peer %d, %s: %fms mean time, %d blocks, %d duplicate blocks.\n",
+					num, peer.Peer.String(), mbt, s.BlocksReceived, s.DupBlksReceived)
+		}
+	}
+	fmt.Printf("Mean block time: %fms.\n", r.TotalMeanBlockTime(peers))
+	fmt.Printf("Total blocks received: %d.\n", TotalBlocksReceived(peers))
+	fmt.Printf("Duplicate blocks received: %d.\n", DupBlocksReceived(peers))
+	fmt.Printf("Total time: %s.\n", r.ElapsedTime())
 }
