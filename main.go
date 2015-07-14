@@ -56,6 +56,7 @@ func main() {
 	scanner.Scan()
 	configure(scanner.Text(), override)
 	currLine++
+	fmt.Println(config)
 	
 	recorder = NewRecorder("data/metrics")
 	
@@ -83,8 +84,8 @@ func main() {
 		dummy.DeleteFiles()
 	}
 	
-	recorder.Close(file.Name())
 	reportStats()
+	recorder.Close(file.Name())
 	fmt.Println(time.Now())
 }
 
