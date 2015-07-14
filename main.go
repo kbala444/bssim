@@ -24,6 +24,7 @@ import (
 	"time"
 	"net/http"
 	"github.com/prometheus/client_golang/prometheus"
+	"flag"
 )
 
 var config map[string]string
@@ -42,30 +43,32 @@ func main() {
 	var file *os.File
 	var err error
 	
-	if len(os.Args) > 2{
-		log.Fatalf("Too many arguments.")
-	} else if len(os.Args) > 1{
-		file, err = os.Open(os.Args[1])
-	} else {
-		file, err = os.Open("samples/star")
-	}
+	filename := flag.String("wl", "samples/star", "specifies the workload to run")
+	prom := flag.Bool("prom", false, "if true, posts prometheus metrics to localhost:8080/metrics")
+	override := getOptFlags()
 	
+	file, err = os.Open(*filename)
     check(err)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-	//  get first (config) line
-	scanner.Scan()
-	configure(scanner.Text())
-	recorder = NewRecorder("data/metrics")
 	
+	//  parse first (config) line
+	scanner.Scan()
+	configure(scanner.Text(), override)
 	currLine++
 	
+	recorder = NewRecorder("data/metrics")
+	
 	net, peers = createTestNetwork()
-	go func(){
-		http.Handle("/metrics", prometheus.Handler())
-		http.ListenAndServe(":8080", nil)
-	}()
+	
+	if *prom{
+		go func(){
+			http.Handle("/metrics", prometheus.Handler())
+			http.ListenAndServe(":8080", nil)
+		}()
+	}
 		
+	//  execute commands
 	for scanner.Scan() {
 		err := execute(scanner.Text())
 		check(err)
@@ -75,27 +78,18 @@ func main() {
 	err = scanner.Err()
 	check(err)
 	
-	//  Clean up if used
+	//  Clean up dummy files if used
 	if dummy != nil{
 		dummy.DeleteFiles()
 	}
 	
-//	c := make(chan os.Signal)
-//	signal.Notify(c, os.Interrupt)
-//	go func(){
-//	    for sig := range c {
-//			recorder.Close(file.Name())
-//	        // sig is a ^C, handle it
-//	    }
-//	}()
 	recorder.Close(file.Name())
 	reportStats()
 	fmt.Println(time.Now())
-	
 }
 
 //  Configure simulation based on first line of cmd file
-func configure(cfgString string){
+func configure(cfgString string, override map[string]string){
 	//  Initialize config to default values
 	config = map[string]string{
 		"node_count" : "10",
@@ -105,9 +99,6 @@ func configure(cfgString string){
 		"deadline" : "60",
 		"latency" : "0",
 		"bandwidth" : "1000",
-		//"message_delay" : "0",
-		//"type" : "mock",
-		//  add more options here later
 	}
 	
 	if len(cfgString) > 1{
@@ -119,6 +110,13 @@ func configure(cfgString string){
 				log.Fatalf("Invalid config.")
 			}
 			k, v := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
+			config[k] = v
+		}
+	}
+	
+	//  override config with flags
+	for k, v := range override{
+		if v != "none"{
 			config[k] = v
 		}
 	}
@@ -482,6 +480,16 @@ func ParseRange(s string) ([]int, error) {
 		}
 		return []int{n}, nil
 	}
+}
+
+func getOptFlags() map[string]string{
+	bw := flag.String("bw", "none", "overrides workload bandwidth")
+	lat := flag.String("lat", "none", "overrides workload latency")
+	flag.Parse()
+	d := make(map[string]string, 0)
+	d["bandwidth"] = *bw
+	d["latency"] = *lat
+	return d
 }
 
 func check(e error) {
