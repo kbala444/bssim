@@ -15,12 +15,20 @@ def multipage(filename, figs=None, dpi=200):
     pp.close()
 
 def lock_float_field(df, field):
-    vals = raw_input('make graphs where ' + field + " (space separated list)=")
-    if vals == "":
-        return None
+    vals = prompt(field)
+    if vals == []:
+	return None
 
-    vals = vals.split()
-    vals = map(float, vals)
     filter = df[field].isin(vals)
     filtered = df[filter]
     return filtered
+
+def prompt(field):
+    vals = raw_input('make graphs where ' + field + " (space separated list)=")
+    if vals == "":
+        return []
+
+    vals = vals.split()
+    vals = map(float, vals)
+    return vals
+

@@ -1,8 +1,8 @@
-node_count:100, deadline:120, latency: 5, bandwidth: 2000
+node_count:100, deadline:120, latency: 6, bandwidth: 10000
 # samples/test.mp3 is the hottest new song all the cool kids are downloading
 0 put samples/test.mp3
 # nodes 1-12 are in the same room as 0
-[1-12]->0 1 2000
+#[1-12]->0 1 2000
 [1-4] get samples/test.mp3
 [5-12] get samples/test.mp3
 [13-25] get samples/test.mp3

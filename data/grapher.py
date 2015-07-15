@@ -5,6 +5,8 @@ import seaborn as sns
 import os
 import ConfigParser
 import util
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 class Grapher():
     # create new grapher that reads data from given sqlite3 db and config file
@@ -14,7 +16,7 @@ class Grapher():
 
         # configure
         self.config = ConfigParser.ConfigParser()
-        self.config.read('config.ini')
+        self.config.read(cfg)
         self.wl = self.config.get('DEFAULT', 'workload')
 
         # load dataframe
@@ -29,10 +31,10 @@ class Grapher():
         # assumes alphabetic order in select statement............
         sql = 'SELECT bandwidth, duration, latency, runid FROM runs where workload LIKE ("%" || ? || "%") ORDER BY runid ASC'
         for row in self.cur.execute(sql, (workload,)):
-         i = 0
-         for k in sorted(cols_dict.iterkeys()):
-             cols_dict[k].append(row[i])
-             i += 1
+            i = 0
+            for k in sorted(cols_dict.iterkeys()):
+                cols_dict[k].append(row[i])
+                i += 1
 
         means = []
         # get mean block time for each runid
@@ -79,7 +81,32 @@ class Grapher():
         if filtered is None:
             return self.latmeanbw()
 
-        g = sns.lmplot("latencies", "means", data=filtered[['latencies', 'means', 'bandwidths']], scatter=True, col='bandwidths')
+        g = sns.lmplot("latencies", "means", data=filtered[['latencies', 'means', 'bandwidths']], scatter=True, col='bandwidths') 
+                #scatter_kws={'c':filtered['runids'].tolist(), 'cmap': cm.Accent})
+
+    def latmean_nodes(self):
+        print 'latency vs mean all nodes displayed'
+        filtered = util.lock_float_field(self.df, 'bandwidths')
+        if filtered is None:
+            return self.latmeanbw()
+
+        all_times_dict = {'runids': [], 'latencies': [], 'bandwidths': [], 'times': []}
+        for runid in filtered['runids']:
+            # get latency for runid
+            self.cur.execute('SELECT latency, bandwidth FROM runs where runid=?', (runid,))
+            lat, bw = self.cur.fetchone()
+
+            # get block times from runid and populate bandwidths and latencies
+            for row in self.cur.execute('SELECT time FROM block_times where runid=?', (runid,)):
+                all_times_dict['runids'].append(runid)
+                all_times_dict['latencies'].append(lat)
+                all_times_dict['bandwidths'].append(bw)
+                all_times_dict['times'].append(row[0])
+
+        timesdf = pd.DataFrame.from_dict(all_times_dict)
+        print timesdf['runids']
+        g = sns.lmplot("latencies", "times", data=timesdf[['latencies', 'times']],# 'bandwidths']], 
+                scatter=True, scatter_kws={'c': timesdf['runids'].tolist(), 'cmap': cm.Accent, "alpha": .5}, legend_out=True)
 
     def latmeanbw(self):
         # take log of bw array for better sizing
@@ -104,7 +131,13 @@ class Grapher():
         
         filter = filtered["bandwidths"] > 0
         filtered = filtered[filter]
-        g = sns.lmplot("bandwidths", "means", data=filtered[['bandwidths', 'means', 'latencies']], col='latencies')
+
+        # use plain pyplot cause seaborn has semilog issues
+        plt.scatter(filtered["bandwidths"].tolist(), filtered["means"].tolist())
+        plt.semilogx()
+        plt.title(self.wl)
+        plt.xlabel('bandwidth')
+        plt.ylabel('duration')
 
     def bwdur(self):
         print 'bandwidth vs durations'
@@ -114,7 +147,27 @@ class Grapher():
 
         filter = filtered["bandwidths"] > 0
         filtered = filtered[filter]
-        g = sns.lmplot("bandwidths", "durations", data=filtered[['bandwidths', 'durations', 'latencies']], col='latencies')
+
+        # use plain pyplot cause seaborn has semilog issues
+        plt.scatter(filtered["bandwidths"].tolist(), filtered["means"].tolist())
+        plt.semilogx()
+        plt.title(self.wl)
+        plt.xlabel('bandwidth')
+        plt.ylabel('duration')
+
+    def show_completion(self):
+        self.cur.execute('SELECT * FROM file_times where runid=(select max(runid) from runs) order by timestamp asc')
+        rows = self.cur.fetchall()
+
+        timestamps = []
+        for row in rows:
+            timestamps.append(row[0])
+
+        counts = [i + 1 for i in xrange(len(rows))]
+
+        plt.fill_between(timestamps, counts, 0)
+        plt.xlabel("time")
+        plt.ylabel("received file count")
 
     # saves/shows graphs if specified in config and closes connection
     def finish(self):
@@ -133,6 +186,7 @@ class Grapher():
         return g
 
 if __name__ == "__main__":
+    # should get config file path from bash script
     grapher = Grapher('metrics', 'config.ini')
 
     print 'Which graphs would you like (space separated list):'
@@ -142,9 +196,12 @@ if __name__ == "__main__":
     print '3: bandwidths v means'
     print '4: bandwidths v durations'
     print '5: latency v means v bw (size of circle is bw)'
+    print '6: cummulative file completion times'
+    print '7: latency v means but show all nodes (note: takes a couple seconds)'
 
     funcs = [grapher.bttime, grapher.latmean, grapher.latdur, 
-            grapher.bwmeans, grapher.bwdur, grapher.latmeanbw]
+            grapher.bwmeans, grapher.bwdur, grapher.latmeanbw, grapher.show_completion,
+            grapher.latmean_nodes]
 
     inp = raw_input('\n->')
     figs = inp.split(' ')

@@ -402,7 +402,7 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance{
 	if err != nil{
 		log.Fatalf("Invalid bandwidth in config.")
 	}
-	//  Convert bandwidth from mbps to bytes/s
+	//  Convert bandwidth from megabits/s to bytes/s
 	bps = bps * 1024 * 1024 / 8
 	
 	lat, err := strconv.ParseFloat(config["latency"], 64)
