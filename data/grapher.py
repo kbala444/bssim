@@ -7,6 +7,9 @@ import ConfigParser
 import util
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import sys
+
+use_config = True
 
 class Grapher():
     # create new grapher that reads data from given sqlite3 db and config file
@@ -17,10 +20,13 @@ class Grapher():
         # configure
         self.config = ConfigParser.ConfigParser()
         self.config.read(cfg)
-        self.wl = self.config.get('DEFAULT', 'workload')
+        self.wl = self.config.get('general', 'workload')
 
         # load dataframe
         self.df = self.loaddf(self.wl)
+
+        self.lats = []
+        self.bws = []
 
     # returns dataframe of runs with given workload
     def loaddf(self, workload):
@@ -77,7 +83,7 @@ class Grapher():
     # graphs latencies vs mean for given bandwidth
     def latmean(self):
         print 'latency vs mean'
-        filtered = util.lock_float_field(self.df, 'bandwidths')
+        filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
         if filtered is None:
             return self.latmeanbw()
 
@@ -86,7 +92,7 @@ class Grapher():
 
     def latmean_nodes(self):
         print 'latency vs mean all nodes displayed'
-        filtered = util.lock_float_field(self.df, 'bandwidths')
+        filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
         if filtered is None:
             return self.latmeanbw()
 
@@ -104,7 +110,6 @@ class Grapher():
                 all_times_dict['times'].append(row[0])
 
         timesdf = pd.DataFrame.from_dict(all_times_dict)
-        print timesdf['runids']
         g = sns.lmplot("latencies", "times", data=timesdf[['latencies', 'times']],# 'bandwidths']], 
                 scatter=True, scatter_kws={'c': timesdf['runids'].tolist(), 'cmap': cm.Accent, "alpha": .5}, legend_out=True)
 
@@ -117,7 +122,7 @@ class Grapher():
 
     def latdur(self):
         print 'latency vs duration'
-        filtered = util.lock_float_field(self.df, 'bandwidths')
+        filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
         if filtered is None:
             return self.latmeanbw()
 
@@ -125,7 +130,7 @@ class Grapher():
 
     def bwmeans(self):
         print 'bandwidth vs means'
-        filtered = util.lock_float_field(self.df, 'latencies')
+        filtered = util.lock_float_field(self.df, 'latencies', self.lats)
         if filtered is None:
             return latmeanbw()
         
@@ -133,6 +138,7 @@ class Grapher():
         filtered = filtered[filter]
 
         # use plain pyplot cause seaborn has semilog issues
+        plt.figure()
         plt.scatter(filtered["bandwidths"].tolist(), filtered["means"].tolist())
         plt.semilogx()
         plt.title(self.wl)
@@ -141,7 +147,7 @@ class Grapher():
 
     def bwdur(self):
         print 'bandwidth vs durations'
-        filtered = util.lock_float_field(self.df, 'latencies')
+        filtered = util.lock_float_field(self.df, 'latencies', self.lats)
         if filtered is None:
             return latmeanbw()
 
@@ -149,6 +155,7 @@ class Grapher():
         filtered = filtered[filter]
 
         # use plain pyplot cause seaborn has semilog issues
+        plt.figure()
         plt.scatter(filtered["bandwidths"].tolist(), filtered["means"].tolist())
         plt.semilogx()
         plt.title(self.wl)
@@ -165,16 +172,17 @@ class Grapher():
 
         counts = [i + 1 for i in xrange(len(rows))]
 
+        plt.figure()
         plt.fill_between(timestamps, counts, 0)
         plt.xlabel("time")
         plt.ylabel("received file count")
 
     # saves/shows graphs if specified in config and closes connection
     def finish(self):
-        if self.config.getboolean('DEFAULT', 'save'):
-            util.multipage(self.config.get('DEFAULT', 'filename'))
+        if self.config.getboolean('general', 'save'):
+            util.multipage(self.config.get('general', 'filename'))
 
-        if self.config.getboolean('DEFAULT', 'show'):
+        if self.config.getboolean('general', 'show'):
             sns.plt.show()
 
         self.conn.close()
@@ -185,10 +193,8 @@ class Grapher():
                 ax.set_title(self.wl)
         return g
 
-if __name__ == "__main__":
-    # should get config file path from bash script
-    grapher = Grapher('metrics', 'config.ini')
-
+# determines what graphs to show user with prompt
+def pick_figs(grapher):
     print 'Which graphs would you like (space separated list):'
     print '0: time series of block times'
     print '1: latency v means'
@@ -199,17 +205,41 @@ if __name__ == "__main__":
     print '6: cummulative file completion times'
     print '7: latency v means but show all nodes (note: takes a couple seconds)'
 
-    funcs = [grapher.bttime, grapher.latmean, grapher.latdur, 
-            grapher.bwmeans, grapher.bwdur, grapher.latmeanbw, grapher.show_completion,
-            grapher.latmean_nodes]
-
     inp = raw_input('\n->')
     figs = inp.split(' ')
     # run them all by default
     if inp == '':
-        figs = [i for i in range(len(funcs))]
+        #figs = [i for i in range(len(funcs))]
+        figs = [i for i in range(8)]
 
     figs = map(int, figs)
+    return figs
+
+# gets figs from config file
+def read_figs(grapher):
+    cfg = grapher.config
+    figs = cfg.get('graphs', 'graphs')
+    figs = figs.split()
+    figs = map(int, figs)
+
+    lats = cfg.get('graphs', 'latencies')
+    grapher.lats = map(int, lats.split())
+
+    bws = cfg.get('graphs', 'bandwidths')
+    grapher.bws = map(int, bws.split())
+
+    return figs
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print 'first arg should be path to db, second arg should be path to config file'
+
+    grapher = Grapher(sys.argv[1], sys.argv[2])
+    #figs = pick_figs(grapher)
+    figs = read_figs(grapher)
+    funcs = [grapher.bttime, grapher.latmean, grapher.latdur, 
+            grapher.bwmeans, grapher.bwdur, grapher.latmeanbw, grapher.show_completion,
+            grapher.latmean_nodes]
 
     i = 0
     for f in figs:

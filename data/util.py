@@ -14,10 +14,11 @@ def multipage(filename, figs=None, dpi=200):
         fig.savefig(pp, format='pdf')
     pp.close()
 
-def lock_float_field(df, field):
-    vals = prompt(field)
+def lock_float_field(df, field, vals=[]):
     if vals == []:
-	return None
+	vals = prompt(field)
+	if vals == []:
+	    return None
 
     filter = df[field].isin(vals)
     filtered = df[filter]

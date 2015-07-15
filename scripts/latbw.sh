@@ -17,4 +17,4 @@ done
 # change workload in config for graphing
 # comma separators since $1 might have slashes in it
 sed -i "s,workload=.*,workload=$1,g" ./data/config.ini
-python ./data/grapher.py
+python ./data/grapher.py ./data/config.ini
