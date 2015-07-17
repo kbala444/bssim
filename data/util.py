@@ -6,6 +6,7 @@ def reset_axis():
     ax.relim()      # make sure all the data fits
     ax.autoscale()  # auto-scale
 
+# lifted from stackoverflow
 def multipage(filename, figs=None, dpi=200):
     pp = PdfPages(filename)
     if figs is None:
@@ -14,6 +15,8 @@ def multipage(filename, figs=None, dpi=200):
         fig.savefig(pp, format='pdf')
     pp.close()
 
+# filters a dataframe, keeping rows with field in vals
+# if vals is empty, user is prompted to enter some
 def lock_float_field(df, field, vals=[]):
     if vals == []:
 	vals = prompt(field)
@@ -32,4 +35,3 @@ def prompt(field):
     vals = vals.split()
     vals = map(float, vals)
     return vals
-

@@ -11,10 +11,21 @@ import sys
 
 use_config = True
 
+# array of tuples of all graphing functions in Grapher and a description for each
+graph_funcs = []
+# decorator to keep track of graphing functions
+def is_graph(desc):
+    # wrap add_func in is_graph to accept a description argument
+    def add_func(func):
+        graph_funcs.append((func, desc))
+        return func
+
+    return add_func
+
 class Grapher():
     # create new grapher that reads data from given sqlite3 db and config file
     def __init__(self, db, cfg):
-        self.conn = sqlite3.connect('metrics')
+        self.conn = sqlite3.connect(db)
         self.cur = self.conn.cursor()
 
         # configure
@@ -28,6 +39,7 @@ class Grapher():
         self.lats = []
         self.bws = []
 
+    
     # returns dataframe of runs with given workload
     def loaddf(self, workload):
         print 'loading sql into dataframe...'
@@ -54,10 +66,10 @@ class Grapher():
         # drop tables without durations
         # make sure to clean df before any plots cause mean outliers are associated with no durations
         df = df[df['durations'].astype(object) != ""]
-        
+
         return df
 
-    # graph of block times over time for most recent run
+    @is_graph('graph of block times vs time for most recent run')
     def bttime(self):
         # get block_time rows for most recent run, assumes most recent run isn't in progress
         self.cur.execute('SELECT * FROM block_times where runid=(select max(runid) from runs)')
@@ -80,7 +92,7 @@ class Grapher():
         g.ax.text(0.005, 0.005, str(zip(names, config)))
         g.ax.set_title(self.wl)
 
-    # graphs latencies vs mean for given bandwidth
+    @is_graph('graph of latencies vs mean for given bandwidths')
     def latmean(self):
         print 'latency vs mean'
         filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
@@ -90,6 +102,7 @@ class Grapher():
         g = sns.lmplot("latencies", "means", data=filtered[['latencies', 'means', 'bandwidths']], scatter=True, col='bandwidths') 
                 #scatter_kws={'c':filtered['runids'].tolist(), 'cmap': cm.Accent})
 
+    @is_graph('graph of latencies vs block_times (colored by runid) for given bandwidths')
     def latmean_nodes(self):
         print 'latency vs mean all nodes displayed'
         filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
@@ -113,6 +126,7 @@ class Grapher():
         g = sns.lmplot("latencies", "times", data=timesdf[['latencies', 'times']],# 'bandwidths']], 
                 scatter=True, scatter_kws={'c': timesdf['runids'].tolist(), 'cmap': cm.Accent, "alpha": .5}, legend_out=True)
 
+    @is_graph('graph of latencies vs mean where bandwidth is the size of the point')
     def latmeanbw(self):
         # take log of bw array for better sizing
         normbws = np.array(self.df.bandwidths) 
@@ -120,6 +134,7 @@ class Grapher():
         g.set(ylim=(0, 400))
         g = self.with_title(g)
 
+    @is_graph('graph of latencies vs simulation durations for given bandwidths')
     def latdur(self):
         print 'latency vs duration'
         filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
@@ -128,6 +143,7 @@ class Grapher():
 
         g = sns.lmplot("latencies", "durations", data=filtered[['latencies', 'durations', 'bandwidths']].astype(float), col='bandwidths')
 
+    @is_graph('graph of bandwidths vs means for given latencies')
     def bwmeans(self):
         print 'bandwidth vs means'
         filtered = util.lock_float_field(self.df, 'latencies', self.lats)
@@ -145,6 +161,7 @@ class Grapher():
         plt.xlabel('bandwidth')
         plt.ylabel('duration')
 
+    #@is_graph
     def bwdur(self):
         print 'bandwidth vs durations'
         filtered = util.lock_float_field(self.df, 'latencies', self.lats)
@@ -162,6 +179,7 @@ class Grapher():
         plt.xlabel('bandwidth')
         plt.ylabel('duration')
 
+    @is_graph('graph of # of files completed for most recent run over time')
     def show_completion(self):
         self.cur.execute('SELECT * FROM file_times where runid=(select max(runid) from runs) order by timestamp asc')
         rows = self.cur.fetchall()
@@ -176,6 +194,10 @@ class Grapher():
         plt.fill_between(timestamps, counts, 0)
         plt.xlabel("time")
         plt.ylabel("received file count")
+
+    @is_graph('graph of file size vs file times for given bandwidths')
+    def fsize_time(self):
+        self.cur.execute('SELECT * FROM file_times where runid=(select max(runid) from runs) order by timestamp asc')
 
     # saves/shows graphs if specified in config and closes connection
     def finish(self):
@@ -193,24 +215,20 @@ class Grapher():
                 ax.set_title(self.wl)
         return g
 
+   
 # determines what graphs to show user with prompt
 def pick_figs(grapher):
     print 'Which graphs would you like (space separated list):'
-    print '0: time series of block times'
-    print '1: latency v means'
-    print '2: latency v duration'
-    print '3: bandwidths v means'
-    print '4: bandwidths v durations'
-    print '5: latency v means v bw (size of circle is bw)'
-    print '6: cummulative file completion times'
-    print '7: latency v means but show all nodes (note: takes a couple seconds)'
+    i = 0
+    for f in graph_funcs:
+        print '%d: %s' % (i, f[1])
+        i += 1
 
     inp = raw_input('\n->')
     figs = inp.split(' ')
     # run them all by default
     if inp == '':
-        #figs = [i for i in range(len(funcs))]
-        figs = [i for i in range(8)]
+        figs = [i for i in xrange(len(graph_funcs))]
 
     figs = map(int, figs)
     return figs
@@ -230,20 +248,20 @@ def read_figs(grapher):
 
     return figs
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 3:
         print 'first arg should be path to db, second arg should be path to config file'
+        return
 
     grapher = Grapher(sys.argv[1], sys.argv[2])
-    #figs = pick_figs(grapher)
-    figs = read_figs(grapher)
-    funcs = [grapher.bttime, grapher.latmean, grapher.latdur, 
-            grapher.bwmeans, grapher.bwdur, grapher.latmeanbw, grapher.show_completion,
-            grapher.latmean_nodes]
+    figs = pick_figs(grapher)
+    #figs = read_figs(grapher)
 
-    i = 0
-    for f in figs:
-        funcs[f]()
-        i += 1
+    for index in figs:
+        graph_funcs[index][0](grapher)
 
     grapher.finish()
+
+if __name__ == "__main__":
+    main()
+    
