@@ -6,9 +6,9 @@
 
 cd ..
 
-for i in ${latency[@]}
+for i in ${latencies[@]}
 do
-    for j in ${bandwidth[@]}
+    for j in ${bandwidths[@]}
     do
 	./bssim -wl $1 -bw $j -lat $i
     done
@@ -16,5 +16,6 @@ done
 
 # change workload in config for graphing
 # comma separators since $1 might have slashes in it
-sed -i "s,workload=.*,workload=$1,g" ./data/config.ini
-python ./data/grapher.py ./data/config.ini
+cd data
+sed -i "s,workload=.*,workload=$1,g" ./config.ini
+python grapher.py metrics config.ini

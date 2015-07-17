@@ -1,5 +1,11 @@
-latency=( 50 60 ) #9 11 13 ) #18 22 27 30 )
-bandwidth=( 1000 ) #5000 500 50 10000 )
+#latency=( 0 10 20 30 40 50 60 70 )
+#bandwidth=( 1 5 10 15 25 30 40 50 100 )
+
+line=$(grep latencies= ../data/config.ini| cut -d "=" -f 2)
+latencies=( $line )
+
+line=$(grep bandwidths= ../data/config.ini| cut -d "=" -f 2)
+bandwidths=($line)
 
 replaceOpt(){
     echo $1

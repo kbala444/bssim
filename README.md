@@ -1,4 +1,21 @@
-## Usage
+## Usages
+
+##### "I want to run a single workload and look at some basic stats for it."
+1.  Make a [command file](#workloads) and save it or pick one from the `samples` folder.
+2.  `cd` into your bssim folder and run `./bssim -wl <path-to-workload>`
+3.  Check your stdout for some basic stats.
+
+##### "I want to see graphs for the workload I just ran."
+1.  `cd bssim/data`
+2.  Edit `config.ini` to your liking.
+3.  `python grapher.py`
+4.  By default, graphs are displayed and saved to`data/graphs.pdf`
+
+##### "I want to run a workload with a bunch of different latencies and bandwidths and see graphs for it."
+1.  Edit `bssim/data/config.ini` to your liking.  The `latencies` and `bandwidths` will be what the workload is run with and what the graphs will show.
+2.  Run `./bssim/scripts/latbw.sh <path-to-workload>`.
+
+## Commands
 Commands work similarly to [dhtHell](https://github.com/whyrusleeping/dhtHell).  
 Commands are of the syntax `node# command arg`, where `node#` can be a single node number or a range in the form `[#-#]`.
 
@@ -14,8 +31,8 @@ There's also a few special commands:
 * `create_dummy_files <# of files> <file size>`  - creates a specified number of files in the samples directory with names dummy(n) and then deletes them when the script finishes (see `samples/lotsofiles` for an example).  
 * `node#->node <latency> <bandwidth>` - assigns a latency and bandwidth to the links between the nodes in node# and node (floats, ms and megabits per second).
 
-## Config
-The first line of a command file should contain comma separated key value pairs.  
+## Workloads<a name="workloads"></a>
+The first line of a workload file should contain comma separated key value pairs.  
 Example: `node_count:20, query_delay:1`  
 The fields you can configure are currently:  
 
@@ -27,7 +44,7 @@ The fields you can configure are currently:
 * `bandwidth` - Specifies default bandwidth in megabits/sec for all links.  Can be changed using the `->` command (float, defaults to 100).
 * `latency` - Specifies default latency in milliseconds for all links.  Can be changed using the `->` command (float, defaults to  0).
 
-## Metrics
+## Prometheus
 Prometheus metrics are pushed to [localhost:8080/metrics](localhost:8080/metrics).
 Current metrics collected are:
 * `file_times_ms`
