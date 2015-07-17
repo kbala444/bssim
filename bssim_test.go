@@ -12,12 +12,12 @@ import (
 	"os"
 )
 
-func TestDelays(t *testing.T){
-	
+func init(){
+	recorder = NewRecorder("data/metrics")
 }
 
 func TestPutBlockCmd(t *testing.T){
-	configure("node_count:1")
+	configure("node_count:1", nil)
 	net, peers = createTestNetwork()
 	
 	testBlock := blocks.NewBlock([]byte("testblock"))
@@ -30,7 +30,7 @@ func TestPutBlockCmd(t *testing.T){
 }
 
 func TestPutFileCmd(t *testing.T){
-	configure("node_count:3")
+	configure("node_count:3", nil)
 	net, peers = createTestNetwork()
 	
 	//  test single node
@@ -83,7 +83,7 @@ func TestPutFileCmd(t *testing.T){
 }
 
 func TestGetFileCmd(t *testing.T){
-	configure("node_count:2")
+	configure("node_count:2", nil)
 	net, peers = createTestNetwork()
 	
 	err := putFileCmd([]int{0}, "samples/test.mp3")
@@ -119,7 +119,7 @@ func TestGetFileCmd(t *testing.T){
 }
 
 func TestLeaveCmd(t *testing.T){
-	configure("node_count:2, deadline:0.25")
+	configure("node_count:2, deadline:0.25", nil)
 	net, peers = createTestNetwork()
 	
 	err := putFileCmd([]int{0}, "samples/test.txt")
@@ -137,7 +137,7 @@ func TestLeaveCmd(t *testing.T){
 		}
 	}
 	
-	configure("node_count:2, deadline:0.25")
+	configure("node_count:2, deadline:0.25", nil)
 	net, peers = createTestNetwork()
 	
 	err = putFileCmd([]int{0}, "samples/test.txt")
