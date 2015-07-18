@@ -197,7 +197,26 @@ class Grapher():
 
     @is_graph('graph of file size vs file times for given bandwidths')
     def fsize_time(self):
-        self.cur.execute('SELECT * FROM file_times where runid=(select max(runid) from runs) order by timestamp asc')
+        # select rids where bandwidth in self.bws to create mapping of runids to bws
+        runid_bw = {}
+        self.cur.execute('SELECT runid, bandwidth FROM runs WHERE bandwidth IN (%s)' % ','.join('?'*len(self.bws)), self.bws)
+        rows = self.cur.fetchall()
+        for rid, bw in rows:
+            runid_bw[rid] = bw
+
+        # create dataframe of file times vs their size and bandwidth of that run
+        runids = runid_bw.keys()
+        df_dict = {'bandwidth': [], 'time': [], 'size': []}
+        self.cur.execute('SELECT runid, time, size FROM file_times WHERE runid IN (%s)' % ','.join('?'*len(runids)), runids)
+ 
+        rows = self.cur.fetchall()
+        for runid, time, size in rows:
+            df_dict['bandwidth'].append(runid_bw[runid])
+            df_dict['time'].append(time)
+            df_dict['size'].append(size)
+        
+        df = pd.DataFrame.from_dict(df_dict)
+        g = sns.lmplot("size", "time", data=df, scatter=True, col='bandwidth') 
 
     # saves/shows graphs if specified in config and closes connection
     def finish(self):
@@ -249,13 +268,9 @@ def read_figs(grapher):
     return figs
 
 def main():
-    if len(sys.argv) < 3:
-        print 'first arg should be path to db, second arg should be path to config file'
-        return
-
-    grapher = Grapher(sys.argv[1], sys.argv[2])
-    figs = pick_figs(grapher)
-    #figs = read_figs(grapher)
+    grapher = Grapher('metrics', 'config.ini')
+    #figs = pick_figs(grapher)
+    figs = read_figs(grapher)
 
     for index in figs:
         graph_funcs[index][0](grapher)
