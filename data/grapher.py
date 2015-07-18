@@ -34,77 +34,85 @@ class Grapher():
         self.wl = self.config.get('general', 'workload')
 
         # load dataframe
-        self.df = self.loaddf(self.wl)
+        self.df = self.loaddf()
 
         self.lats = []
         self.bws = []
-
     
     # returns dataframe of runs with given workload
-    def loaddf(self, workload):
+    def loaddf(self):
         print 'loading sql into dataframe...'
         #get mean block times where workload=samples/star order by runid ascneding
         cols_dict = {'runids': [], 'latencies' : [], 'bandwidths': [], 'durations': []}
 
         # assumes alphabetic order in select statement............
         sql = 'SELECT bandwidth, duration, latency, runid FROM runs where workload LIKE ("%" || ? || "%") ORDER BY runid ASC'
-        for row in self.cur.execute(sql, (workload,)):
+        for row in self.cur.execute(sql, (self.wl,)):
             i = 0
             for k in sorted(cols_dict.iterkeys()):
                 cols_dict[k].append(row[i])
                 i += 1
 
+        df = pd.DataFrame.from_dict(cols_dict)
+
+        return df
+    
+    # loads block_times into dataframe
+    # do it per method so if no graphs involve mean block times, the runtime is much faster
+    def load_block_times(self):
+        if 'means' in self.df.columns:
+            return
+
         means = []
         # get mean block time for each runid
-        for runid in cols_dict['runids']:
+        for runid in self.df['runids']:
             self.cur.execute('SELECT AVG(time) FROM block_times where runid=?', (runid,))
             means.append(self.cur.fetchone()[0])
 
-        cols_dict['means'] = means
-        df = pd.DataFrame.from_dict(cols_dict)
-
-        # drop tables without durations
-        # make sure to clean df before any plots cause mean outliers are associated with no durations
-        df = df[df['durations'].astype(object) != ""]
-
-        return df
+        self.df['means'] = means
 
     @is_graph('graph of block times vs time for most recent run')
     def bttime(self):
-        # get block_time rows for most recent run, assumes most recent run isn't in progress
-        self.cur.execute('SELECT * FROM block_times where runid=(select max(runid) from runs)')
+        print 'loading block time vs time...'
+        # get block_time rows for most recent run
+        self.cur.execute('SELECT timestamp, time, runid FROM block_times where runid=(select max(runid) from runs)')
         rows = self.cur.fetchall()
         rid = (rows[0][2],)
 
+        # get tuple reflecting run config to show under graph
         self.cur.execute('SELECT * FROM runs where runid=?', rid)
         config = self.cur.fetchone()
         config = map(str, config)
         names = [i[0] for i in self.cur.description]
+        desc = str(zip(names, config))
 
         timestamps = []
         times = []
-        for row in rows:
-            timestamps.append(row[0])
-            times.append(row[1])
+        for ts, time, rid in rows:
+            timestamps.append(ts)
+            times.append(time)
         
         timedf = pd.DataFrame.from_dict({'timestamps' : timestamps, 'times' : times})
         g = sns.lmplot("timestamps", "times", data=timedf)
-        g.ax.text(0.005, 0.005, str(zip(names, config)))
+        print desc
         g.ax.set_title(self.wl)
+        # doesn't work...
+        g.ax.text(0.5, 0.5, desc)
 
     @is_graph('graph of latencies vs mean for given bandwidths')
     def latmean(self):
-        print 'latency vs mean'
+        print 'loading latency vs mean...'
+        self.load_block_times()
         filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
         if filtered is None:
             return self.latmeanbw()
 
         g = sns.lmplot("latencies", "means", data=filtered[['latencies', 'means', 'bandwidths']], scatter=True, col='bandwidths') 
-                #scatter_kws={'c':filtered['runids'].tolist(), 'cmap': cm.Accent})
 
     @is_graph('graph of latencies vs block_times (colored by runid) for given bandwidths')
     def latmean_nodes(self):
-        print 'latency vs mean all nodes displayed'
+        print 'loading latency vs mean all nodes displayed...'
+        self.load_block_times()
         filtered = util.lock_float_field(self.df, 'bandwidths', self.bws)
         if filtered is None:
             return self.latmeanbw()
@@ -129,6 +137,7 @@ class Grapher():
     @is_graph('graph of latencies vs mean where bandwidth is the size of the point')
     def latmeanbw(self):
         # take log of bw array for better sizing
+        self.load_block_times()
         normbws = np.array(self.df.bandwidths) 
         g = sns.lmplot("latencies", "means", data=self.df[['latencies', 'means']], scatter_kws={"s": np.log2(normbws) * 10, "alpha" : .5})
         g.set(ylim=(0, 400))
@@ -146,6 +155,7 @@ class Grapher():
     @is_graph('graph of bandwidths vs means for given latencies')
     def bwmeans(self):
         print 'bandwidth vs means'
+        self.load_block_times()
         filtered = util.lock_float_field(self.df, 'latencies', self.lats)
         if filtered is None:
             return latmeanbw()
@@ -269,8 +279,8 @@ def read_figs(grapher):
 
 def main():
     grapher = Grapher('metrics', 'config.ini')
-    #figs = pick_figs(grapher)
-    figs = read_figs(grapher)
+    figs = pick_figs(grapher)
+    #figs = read_figs(grapher)
 
     for index in figs:
         graph_funcs[index][0](grapher)
