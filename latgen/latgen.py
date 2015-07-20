@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from lxml import html
 import numpy as np
 import requests
@@ -5,7 +6,6 @@ import random
 import sys
 import networkx as nx
 from matplotlib import pyplot as plt
-#import seaborn as sns
 import re
 import math
 from optparse import OptionParser
@@ -132,7 +132,7 @@ class NetworkGenerator():
 
         return locs
         
-    def graph_network(self, cons):
+    def graph_network(self, cons, label_edges=True, outfile=None):
         g = nx.Graph()
         #g.add_nodes_from(self.nodes)
 
@@ -165,10 +165,14 @@ class NetworkGenerator():
             edge_labels[edges[i]] = '%d, %d' % (cons[i][2], cons[i][3]) 
 
         nx.draw(g, pos, node_size=1000, alpha=.5)
-        #nx.draw_networkx_edge_labels(g, pos, edge_labels, font_size=14)
+        if label_edges:
+            nx.draw_networkx_edge_labels(g, pos, edge_labels, font_size=14)
+
         nx.draw_networkx_labels(g, pos, labels, font_size=12, label_pos=0)
-        print g.number_of_nodes()
         plt.draw()
+
+        if outfile:
+            plt.savefig(outfile)
 
 # puts lat and long in latlong file using geoip 
 def update_locs():
@@ -198,32 +202,33 @@ def insert_into_wl(filepath, cons):
 
 def main():
     parser = OptionParser()
-    parser.add_option("-f", "--file", dest="filename",
-                              help="write report to FILE", metavar="FILE")
-    parser.add_option("-f", "--file", action="store", type="string", dest="filename")
+    parser.add_option("-f", "--file", dest="filename", help="write config to new file", metavar="FILE")
+    parser.add_option("-i", "--insert", dest="insertfile", help="insert config into existing workload", metavar="FILE")
+    parser.add_option("-u", "--update", action="store_true", dest="update", help="update city lats and longs")
+    parser.add_option("-s", "--save", dest="graphfile", help="save network graph to file (include extension as well)", metavar="FILENAME.EXT")
+    parser.add_option("-n", "--nolabels", action="store_false", dest="labels", help="hide latencies and bandwidths on graph edges")
+    options, args = parser.parse_args(sys.argv)
 
-    lg = NetworkGenerator(10)
-    cons = lg.gen_connections(37.5)
-    lg.graph_network(cons)
-
-    formatted = lg.format_cons(cons)
-
-    if len(sys.argv) > 1 and '-i' in sys.argv:
-        findex = sys.argv.index('-i') + 1
-        insert_into_wl(sys.argv[findex], formatted)
-    else:
-        print '\n'.join(formatted)
-
-    plt.show()
-
-
-# add opt to show hide lat bw
-if __name__ == "__main__":
-    # update if -u flag
-    if len(sys.argv) > 1 and '-u' in sys.argv:
-        print 'updating locs'
+    if options.update:
+        print 'updating locs...'
         update_locs()
         print 'done'
 
+    lg = NetworkGenerator(10)
+    cons = lg.gen_connections(37.5)
+    lg.graph_network(cons, options.labels, options.graphfile)
+
+    formatted = lg.format_cons(cons)
+
+    if options.filename:
+        with open(options.filename, 'w+') as f:
+            f.write('\n'.join(formatted))
+
+    if options.insertfile:
+        insert_into_wl(options.insertfile, formatted)
+
+    plt.show()
+
+if __name__ == "__main__":
     main()
 
