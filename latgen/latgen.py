@@ -31,20 +31,34 @@ class NetworkGenerator():
 
     # returns link options for n interconnected peers 
     # bandwidth is sampled from a normal distribution with mean mean_bw
-    def gen_connections(self, mean_bw):
+    def gen_connections(self, mean_bw, topology):
         #http://www.netindex.com/download/2,1/United-States/
-        randoms = np.random.normal(mean_bw, 10, self.n)
-
         locs = self.nodes
-        
         # why are links 2 way? why 2 links between each pair?
         # how to allocate bw between multiple connections?
         # (n1, n2, lat, bw)
         cons = []
-        for i in xrange(len(locs)):
-            for j in xrange(i + 1, len(locs)):
-                l = self.get_lat_btwn(locs[i], locs[j])
-                cons.append((i, j, l, randoms[i]))
+        def fcon():
+            bws = np.random.normal(mean_bw, 10, self.n)
+            for i in xrange(len(locs)):
+                for j in xrange(i + 1, len(locs)):
+                    l = self.get_lat_btwn(locs[i], locs[j])
+                    cons.append((i, j, l, bws[i]))
+
+        # star cenetered around node 0
+        # bandwidth is partitioned evenly to each peer? idk what to do with this
+        def star():
+            bw = np.random.normal(mean_bw, 10, 1)/(self.n - 1)
+            for i in xrange(1, len(locs)):
+                l = self.get_lat_btwn(locs[0], locs[i])
+                cons.append((0, i, l, bw))
+                        
+        topologies = {"fcon": fcon, "star": star}
+
+        if topology not in topologies.keys():
+            raise ValueError("Invalid topology")
+
+        topologies[topology]()
 
         return cons
     
@@ -132,7 +146,7 @@ class NetworkGenerator():
 
         return locs
         
-    def graph_network(self, cons, label_edges=True, outfile=None):
+    def graph_network(self, cons, label_edges, outfile=None):
         g = nx.Graph()
         #g.add_nodes_from(self.nodes)
 
@@ -206,7 +220,10 @@ def main():
     parser.add_option("-i", "--insert", dest="insertfile", help="insert config into existing workload", metavar="FILE")
     parser.add_option("-u", "--update", action="store_true", dest="update", help="update city lats and longs")
     parser.add_option("-s", "--save", dest="graphfile", help="save network graph to file (include extension as well)", metavar="FILENAME.EXT")
-    parser.add_option("-n", "--nolabels", action="store_false", dest="labels", help="hide latencies and bandwidths on graph edges")
+    parser.add_option("-n", "--nolabels", action="store_false", dest="labels", help="hide latencies and bandwidths on graph edges", default=True)
+    # add tree and partial mesh
+    parser.add_option("-t", "--topology", dest="topology", help="""choose topology of network\n
+                                                valid options are: 'fcon' (fully connected), 'star'""", default="fcon")
     options, args = parser.parse_args(sys.argv)
 
     if options.update:
@@ -215,7 +232,7 @@ def main():
         print 'done'
 
     lg = NetworkGenerator(10)
-    cons = lg.gen_connections(37.5)
+    cons = lg.gen_connections(37.5, options.topology)
     lg.graph_network(cons, options.labels, options.graphfile)
 
     formatted = lg.format_cons(cons)
