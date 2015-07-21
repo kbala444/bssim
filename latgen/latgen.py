@@ -164,13 +164,12 @@ class NetworkGenerator():
             # could add random noise to every lat long as well
             loc = locs[self.nodes[node]]
             if city in used_cities:
-                loc[0] += 5
+                pos[node] = [loc[0] + 1, loc[1] + 1]
             else:
                 used_cities.append(city)
+                pos[node] = loc
 
-            pos[node] = loc
             labels[node] = '%d %s' % (node, city)
-
 
         #pos = nx.circular_layout(g)
         edge_labels = {}
@@ -220,7 +219,9 @@ def main():
     parser.add_option("-i", "--insert", dest="insertfile", help="insert config into existing workload", metavar="FILE")
     parser.add_option("-u", "--update", action="store_true", dest="update", help="update city lats and longs")
     parser.add_option("-s", "--save", dest="graphfile", help="save network graph to file (include extension as well)", metavar="FILENAME.EXT")
-    parser.add_option("-n", "--nolabels", action="store_false", dest="labels", help="hide latencies and bandwidths on graph edges", default=True)
+    parser.add_option("-l", "--labels", action="store_true", dest="labels", help="show latencies and bandwidths on graph edges", default=False)
+    parser.add_option("-n", "--nodes", type="int", action="store", dest="num_nodes", help="number of nodes in the network", default=10)
+    parser.add_option("-b", "--bandwidth", type="float", action="store", dest="bandwidth", help="average bandwidth of nodes in the network", default=37.5)
     # add tree and partial mesh
     parser.add_option("-t", "--topology", dest="topology", help="""choose topology of network\n
                                                 valid options are: 'fcon' (fully connected), 'star'""", default="fcon")
@@ -231,8 +232,8 @@ def main():
         update_locs()
         print 'done'
 
-    lg = NetworkGenerator(10)
-    cons = lg.gen_connections(37.5, options.topology)
+    lg = NetworkGenerator(options.num_nodes)
+    cons = lg.gen_connections(options.bandwidth, options.topology)
     lg.graph_network(cons, options.labels, options.graphfile)
 
     formatted = lg.format_cons(cons)
