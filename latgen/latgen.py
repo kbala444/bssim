@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import re
 import math
 from optparse import OptionParser
+import os
 
 class NetworkGenerator():
     # inits a new NetworkGenerator with n nodes
@@ -16,7 +17,8 @@ class NetworkGenerator():
     def __init__(self, n):
         # saved subset of above att link
         self.n = n
-        tree = html.parse('ogpage.html')
+        self.folder = os.path.dirname(os.path.realpath(__file__)) + '/'
+        tree = html.parse(self.folder + 'ogpage.html')
         self.cities = self.get_cities(tree)
         self.lats = self.get_latencies(tree)
         # list of cities representing node locations
@@ -136,7 +138,7 @@ class NetworkGenerator():
     
     # returns map of cities to long-lat from local file
     def get_locs(self):
-        f = open('longlat', 'r')
+        f = open(self.folder + 'longlat', 'r')
         locs = {}
         for line in f.readlines():
             line = line.split()
@@ -168,7 +170,6 @@ class NetworkGenerator():
 
             labels[node] = '%d %s' % (node, city)
 
-        #pos = nx.circular_layout(g)
         edge_labels = {}
         edges = g.edges()
         for i in xrange(len(g.edges())):
@@ -190,7 +191,7 @@ def update_locs():
 
     lg = NetworkGenerator(10)
     
-    f = open('longlat', 'w')
+    f = open(lg.folder + 'longlat', 'w')
     geolocator = Nominatim()
     locs = []
     for city in lg.cities:
@@ -224,6 +225,24 @@ def get_num_nodes(workload):
                     v = v.strip()
                     return int(v)
 
+# adds the manual_links to workload
+def set_manual(wl):
+    # read file contents into og array
+    og = []
+    with open(wl, 'r') as f:
+        og = f.readlines()
+
+    # check if manual_links is already set in config line
+    if 'manual_links' in og[0]:
+        return
+
+    # if not, add it to config line
+    og[0] += ', manual_links: true'
+
+    # write new file to existing workload
+    with open(wl, 'w') as f:
+        f.write('\n'.join(og))
+
 def main():
     parser = OptionParser()
     parser.add_option("-f", "--file", dest="filename", help="write config to new file", metavar="FILE")
@@ -250,6 +269,9 @@ def main():
             options.num_nodes = get_num_nodes(options.insertfile)
         else:
             options.num_nodes = 10
+
+    if options.insertfile:
+        set_manual(options.insertfile)
 
     lg = NetworkGenerator(options.num_nodes)
     cons = lg.gen_connections(options.bandwidth, options.topology)
