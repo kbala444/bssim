@@ -7,17 +7,17 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
-	blocks "github.com/ipfs/go-ipfs/blocks"
-	key "github.com/ipfs/go-ipfs/blocks/key"
-	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
-	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
-	splitter "github.com/ipfs/go-ipfs/importer/chunk"
-	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
-	mockrouting "github.com/ipfs/go-ipfs/routing/mock"
-	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
-	testutil "github.com/ipfs/go-ipfs/util/testutil"
-	"github.com/prometheus/client_golang/prometheus"
+	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
+	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
+	bs "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap"
+	tn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
+	splitter "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/importer/chunk"
+	mocknet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/mock"
+	mockrouting "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/mock"
+	delay "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
+	testutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
+	"github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
+	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
 	"log"
 	"net/http"
 	"os"
@@ -99,7 +99,7 @@ func configure(cfgString string, override map[string]string) {
 		"deadline":         "600",
 		"latency":          "0",
 		"bandwidth":        "1000",
-		"manual_links":		 "false",
+		"manual_links":     "false",
 	}
 
 	if len(cfgString) > 1 {
@@ -193,8 +193,8 @@ func connectCmd(cmd string) error {
 	if err != nil {
 		return fmt.Errorf("Line %d: Invalid second node # or range.", currLine)
 	}
-	
-	if config["manual_links"] == "true"{
+
+	if config["manual_links"] == "true" {
 		link(node1, node2)
 	}
 
@@ -221,7 +221,7 @@ func connectCmd(cmd string) error {
 	return nil
 }
 
-func link(connecting []int, dest int){
+func link(connecting []int, dest int) {
 	for _, node := range connecting {
 		//  do i need the opposite command as well?
 		net.LinkPeers(peers[node].Peer, peers[dest].Peer)
@@ -429,7 +429,7 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
 		log.Fatalf("Invalid latency in config.")
 	}
 	(*mn).SetLinkDefaults(mocknet.LinkOptions{Latency: time.Duration(lat) * time.Millisecond, Bandwidth: bps})
-	if config["manual_links"] == "false"{
+	if config["manual_links"] == "false" {
 		(*mn).LinkAll()
 	}
 	return instances

@@ -1,4 +1,4 @@
-node_count:100, deadline:120, latency: 6
+node_count:100, deadline: 600, latency: 0
 # samples/test.mp3 is the hottest new song all the cool kids are downloading
 0 put samples/test.mp3
 [1-4] get samples/test.mp3

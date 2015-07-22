@@ -1,0 +1,12 @@
+node_count:10, latency: 5, bandwidth: 1000, manual_links: true
+0->1 47 6
+0->2 32 6
+0->3 73 6
+0->4 29 6
+0->5 52 6
+0->6 53 6
+0->7 23 6
+0->8 52 6
+0->9 20 6
+
+[1-9] get samples/test.mp3

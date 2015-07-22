@@ -2,12 +2,12 @@
 package main
 
 import (
-	key "github.com/ipfs/go-ipfs/blocks/key"
+	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
 	"testing"
 	"time"
 	//context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 	//"time"
-	blocks "github.com/ipfs/go-ipfs/blocks"
+	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
 	//"fmt"
 	"os"
 )
