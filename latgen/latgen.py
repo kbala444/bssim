@@ -237,11 +237,22 @@ def set_manual(wl):
         return
 
     # if not, add it to config line
-    og[0] += ', manual_links: true'
+    og[0] = og[0].rstrip() + ', manual_links: true'
 
     # write new file to existing workload
     with open(wl, 'w') as f:
         f.write('\n'.join(og))
+
+def remove_existing_conns(wl):
+    f = open(wl, 'r')
+    lines = []
+    for line in f.readlines():
+        if '->' not in line and line != '\n':
+            lines.append(line)
+
+    f.close()
+    with open(wl, 'w') as f:
+        f.write('\n'.join(lines))
 
 def main():
     parser = OptionParser()
@@ -271,6 +282,7 @@ def main():
             options.num_nodes = 10
 
     if options.insertfile:
+        remove_existing_conns(options.insertfile)
         set_manual(options.insertfile)
 
     lg = NetworkGenerator(options.num_nodes)

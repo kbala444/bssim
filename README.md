@@ -15,6 +15,9 @@
 1.  Edit `bssim/data/config.ini` to your liking.  The `latencies` and `bandwidths` will be what the workload is run with and what the graphs will show.
 2.  Run `./bssim/scripts/latbw.sh <path-to-workload>`.
 
+##### "I want to run my workload with a different latency and bandwidth myself without changing the file or running some script."
+1.  `./bssim -wl <workload> -lat <latency> -bw <bandwidth>`
+
 ## Commands
 Commands work similarly to [dhtHell](https://github.com/whyrusleeping/dhtHell).  
 Commands are of the syntax `node# command arg`, where `node#` can be a single node number or a range in the form `[#-#]`.
@@ -43,6 +46,7 @@ The fields you can configure are currently:
 * `deadline` - Number of seconds it takes for a GetBlocks request to time out (float, defaults to 60).
 * `bandwidth` - Specifies default bandwidth in megabits/sec for all links.  Can be changed using the `->` command (float, defaults to 100).
 * `latency` - Specifies default latency in milliseconds for all links.  Can be changed using the `->` command (float, defaults to  0).
+* `manual_links` - Set this to true if you don't want the nodes all linked at the start of the simulation (defaults to false).
 
 ## Prometheus
 Prometheus metrics are pushed to [localhost:8080/metrics](localhost:8080/metrics).
