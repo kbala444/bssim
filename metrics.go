@@ -181,7 +181,7 @@ func (r *Recorder) MeanBlockTime(inst bs.Instance) (float64, error) {
 		return 0, errors.New("No blocks for peer.")
 	}
 
-	sum, err := r.sumBlockTimesForPeer(inst.Peer)
+	sum, err := r.sumTimesForPeer(inst.Peer, "block_times")
 	if err != nil {
 		return 0, err
 	}
@@ -206,29 +206,34 @@ func (r *Recorder) TotalMeanBlockTime(insts []bs.Instance) float64 {
 		}
 		b += s.BlocksReceived
 	}
-	return r.sumBlockTimes() / float64(b)
+	return r.sumTimes("block_times") / float64(b)
 }
 
 func (r *Recorder) TotalFileTime() float64 {
+	return r.sumTimes("file_times")
+}
+
+//  Returns mean file request fulfillment time in ms across all bs instances
+func (r *Recorder) TotalMeanFileTime() float64 {
+	var n float64
+	row := r.db.QueryRow("SELECT COUNT(time) FROM file_times WHERE runid=" + strconv.Itoa(r.rid))
+	err := row.Scan(&n)
+	check(err)
+	return r.sumTimes("file_times") / float64(n)
+}
+
+//  Sums all table (block or file) times of this run
+func (r *Recorder) sumTimes(table string) float64 {
 	var t float64
-	row := r.db.QueryRow("SELECT SUM(time) FROM file_times WHERE runid=" + strconv.Itoa(r.rid))
+	row := r.db.QueryRow("SELECT SUM(time) FROM " + table + " WHERE runid=" + strconv.Itoa(r.rid))
 	err := row.Scan(&t)
 	check(err)
 	return t
 }
 
-//  Sums all block times of this run
-func (r *Recorder) sumBlockTimes() float64 {
+func (r *Recorder) sumTimesForPeer(pid peer.ID, field string) (float64, error) {
 	var t float64
-	row := r.db.QueryRow("SELECT SUM(time) FROM block_times WHERE runid=" + strconv.Itoa(r.rid))
-	err := row.Scan(&t)
-	check(err)
-	return t
-}
-
-func (r *Recorder) sumBlockTimesForPeer(pid peer.ID) (float64, error) {
-	var t float64
-	query := `SELECT SUM(time) FROM block_times WHERE peerid="` + pid.Pretty() + `"AND runid=` + strconv.Itoa(r.rid)
+	query := `SELECT SUM(time) FROM ` + field + ` WHERE peerid="` + pid.Pretty() + `"AND runid=` + strconv.Itoa(r.rid)
 	row := r.db.QueryRow(query)
 	err := row.Scan(&t)
 	if err != nil {
@@ -306,6 +311,6 @@ func (r *Recorder) ReportStats() {
 	fmt.Printf("Mean block time: %fms.\n", r.TotalMeanBlockTime(peers))
 	fmt.Printf("Total blocks received: %d.\n", TotalBlocksReceived(peers))
 	fmt.Printf("Duplicate blocks received: %d.\n", DupBlocksReceived(peers))
-	fmt.Printf("Total file time: %fs.\n", r.TotalFileTime())
+	fmt.Printf("Mean file time: %fs.\n", r.TotalMeanFileTime())
 	fmt.Printf("Simulation took: %s.\n", r.ElapsedTime())
 }
