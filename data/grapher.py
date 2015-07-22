@@ -93,11 +93,14 @@ class Grapher():
             times.append(time)
         
         timedf = pd.DataFrame.from_dict({'timestamps' : timestamps, 'times' : times})
+        # change nanosecond timestamps to seconds
+        timedf['timestamps'] = timedf['timestamps'].astype(float) / (1000 * 1000)
         g = sns.lmplot("timestamps", "times", data=timedf)
         print desc
         g.ax.set_title(self.wl)
+        g.set_axis_labels("time (seconds)", "block times (ms)")
         # doesn't work...
-        g.ax.text(0.5, 0.5, desc)
+        #g.ax.text(0.1, 0.1, desc)
 
     @is_graph('graph of latencies vs mean for given bandwidths')
     def latmean(self):
@@ -196,13 +199,16 @@ class Grapher():
 
         timestamps = []
         for row in rows:
-            timestamps.append(row[0])
+            # convert from microseconds to seconds
+            timestamps.append(float(row[0]) / (1000 * 1000))
 
         counts = [i + 1 for i in xrange(len(rows))]
-
+        
         plt.figure()
         plt.fill_between(timestamps, counts, 0)
-        plt.xlabel("time")
+        ax = plt.gca()
+        ax.get_xaxis().get_major_formatter().set_useOffset(False)
+        plt.xlabel("time (s)")
         plt.ylabel("received file count")
 
     @is_graph('graph of file size vs file times for given bandwidths')
@@ -223,10 +229,12 @@ class Grapher():
         for runid, time, size in rows:
             df_dict['bandwidth'].append(runid_bw[runid])
             df_dict['time'].append(time)
-            df_dict['size'].append(size)
+            # convert size to kb
+            df_dict['size'].append(float(size) / 1024)
         
         df = pd.DataFrame.from_dict(df_dict)
         g = sns.lmplot("size", "time", data=df, scatter=True, col='bandwidth') 
+        g.set_axis_labels("file size (Kb)", "mean file time (s)")
 
     # saves/shows graphs if specified in config and closes connection
     def finish(self):
@@ -279,8 +287,10 @@ def read_figs(grapher):
 
 def main():
     grapher = Grapher('metrics', 'config.ini')
-    figs = pick_figs(grapher)
-    #figs = read_figs(grapher)
+    if len(sys.argv) > 1 and sys.argv[1] == '-p':
+        figs = pick_figs(grapher)
+    else:
+        figs = read_figs(grapher)
 
     for index in figs:
         graph_funcs[index][0](grapher)

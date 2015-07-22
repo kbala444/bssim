@@ -159,7 +159,6 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 //  Ends timer with given id and records data for peer with given pretty id
 func (r *Recorder) EndBlockTime(id int, pid string) {
 	tstamp := (r.times[id].UnixNano() - r.createdAt.UnixNano()) / 1000
-	//tstamp := (time.Now().UnixNano() - recorder.CreatedAt.UnixNano()) / 1000
 
 	elapsed := time.Since(r.times[id])
 	t := elapsed.Seconds() * 1000

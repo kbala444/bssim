@@ -96,9 +96,10 @@ func configure(cfgString string, override map[string]string) {
 		"visibility_delay": "0",
 		"query_delay":      "0",
 		"block_size":       strconv.Itoa(splitter.DefaultBlockSize),
-		"deadline":         "60",
+		"deadline":         "600",
 		"latency":          "0",
 		"bandwidth":        "1000",
+		"manual_links":		 "false",
 	}
 
 	if len(cfgString) > 1 {
@@ -125,7 +126,7 @@ func configure(cfgString string, override map[string]string) {
 	if err != nil {
 		log.Fatalf("Invalid deadline.")
 	}
-	deadline = time.Duration(d*1000) * time.Millisecond
+	deadline = time.Duration(d) * time.Second
 }
 
 func execute(cmdString string) error {
@@ -152,6 +153,7 @@ func execute(cmdString string) error {
 		}
 
 		createDummyFiles(numfiles, filesize)
+		return nil
 	}
 
 	command := split[1]
@@ -191,6 +193,10 @@ func connectCmd(cmd string) error {
 	if err != nil {
 		return fmt.Errorf("Line %d: Invalid second node # or range.", currLine)
 	}
+	
+	if config["manual_links"] == "true"{
+		link(node1, node2)
+	}
 
 	latencyFloat, err := strconv.ParseFloat(split[1], 64)
 	if err != nil {
@@ -213,6 +219,14 @@ func connectCmd(cmd string) error {
 		}
 	}
 	return nil
+}
+
+func link(connecting []int, dest int){
+	for _, node := range connecting {
+		//  do i need the opposite command as well?
+		net.LinkPeers(peers[node].Peer, peers[dest].Peer)
+		//net.LinkPeers(peers[node].Peer, peers[dest].Peer)
+	}
 }
 
 //  Unlinks peers from network
@@ -415,7 +429,9 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
 		log.Fatalf("Invalid latency in config.")
 	}
 	(*mn).SetLinkDefaults(mocknet.LinkOptions{Latency: time.Duration(lat) * time.Millisecond, Bandwidth: bps})
-	(*mn).LinkAll()
+	if config["manual_links"] == "false"{
+		(*mn).LinkAll()
+	}
 	return instances
 }
 
