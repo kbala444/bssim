@@ -148,13 +148,10 @@ class NetworkGenerator():
         
     def graph_network(self, cons, label_edges, outfile=None):
         g = nx.Graph()
-        #g.add_nodes_from(self.nodes)
 
         for con in cons:
             g.add_edge(con[0], con[1], weight=con[2])
 
-        #nx.draw(g)
-        # use pos to show node location?
         pos = {}
         labels = {}
         locs = self.get_locs()
@@ -213,6 +210,20 @@ def insert_into_wl(filepath, cons):
     f.write(''.join(old))
     f.close()
 
+def get_num_nodes(workload):
+    with open(workload, 'r') as f:
+        config = f.readline()
+        if 'node_count' not in config:
+            # default to 10
+            return 10
+        else:
+            split = config.split(",")
+            for field in split:
+                if 'node_count' in field:
+                    nc, v = field.split(':')
+                    v = v.strip()
+                    return int(v)
+
 def main():
     parser = OptionParser()
     parser.add_option("-f", "--file", dest="filename", help="write config to new file", metavar="FILE")
@@ -220,7 +231,7 @@ def main():
     parser.add_option("-u", "--update", action="store_true", dest="update", help="update city lats and longs")
     parser.add_option("-s", "--save", dest="graphfile", help="save network graph to file (include extension as well)", metavar="FILENAME.EXT")
     parser.add_option("-l", "--labels", action="store_true", dest="labels", help="show latencies and bandwidths on graph edges", default=False)
-    parser.add_option("-n", "--nodes", type="int", action="store", dest="num_nodes", help="number of nodes in the network", default=10)
+    parser.add_option("-n", "--nodes", type="int", action="store", dest="num_nodes", help="number of nodes in the network")
     parser.add_option("-b", "--bandwidth", type="float", action="store", dest="bandwidth", help="average bandwidth of nodes in the network", default=37.5)
     # add tree and partial mesh
     parser.add_option("-t", "--topology", dest="topology", help="""choose topology of network\n
@@ -231,6 +242,14 @@ def main():
         print 'updating locs...'
         update_locs()
         print 'done'
+
+    # get num nodes from existing workload if not specified
+    # if no existing workload, set to 10
+    if not options.num_nodes:
+        if options.insertfile:
+            options.num_nodes = get_num_nodes(options.insertfile)
+        else:
+            options.num_nodes = 10
 
     lg = NetworkGenerator(options.num_nodes)
     cons = lg.gen_connections(options.bandwidth, options.topology)
