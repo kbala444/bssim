@@ -60,6 +60,7 @@ type Recorder struct {
 
 //  assumes configure in main.go has been ran which i should fix
 func NewRecorder(dbPath string) *Recorder {
+	fmt.Println(dbPath)
 	db, err := sql.Open("sqlite3", dbPath)
 	check(err)
 

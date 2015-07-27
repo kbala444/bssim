@@ -34,6 +34,7 @@ var peers []bs.Instance
 var deadline time.Duration
 var dummy *DummyHandler
 var recorder *Recorder
+var bssimpath string
 
 //  Map of files to the keys of the blocks that make it
 var files = make(map[string][]key.Key)
@@ -57,8 +58,8 @@ func main() {
 	configure(scanner.Text(), override)
 	currLine++
 	fmt.Println(config)
-
-	recorder = NewRecorder("data/metrics")
+	
+	recorder = NewRecorder(normalizePath("data/metrics"))
 
 	net, peers = createTestNetwork()
 
@@ -84,7 +85,11 @@ func main() {
 		dummy.DeleteFiles()
 	}
 
-	recorder.Close(file.Name())
+	if config["norec"] == "false"{
+		recorder.Close(file.Name())
+	} else {
+		recorder.Kill()
+	}
 	fmt.Println(time.Now())
 }
 
@@ -127,6 +132,10 @@ func configure(cfgString string, override map[string]string) {
 		log.Fatalf("Invalid deadline.")
 	}
 	deadline = time.Duration(d) * time.Second
+	
+	bssimpath, err = os.Getwd()
+	check(err)
+	bssimpath += "/"
 }
 
 func execute(cmdString string) error {
@@ -225,7 +234,7 @@ func link(connecting []int, dest int) {
 	for _, node := range connecting {
 		//  do i need the opposite command as well?
 		net.LinkPeers(peers[node].Peer, peers[dest].Peer)
-		//net.LinkPeers(peers[node].Peer, peers[dest].Peer)
+		net.LinkPeers(peers[dest].Peer, peers[node].Peer)
 	}
 }
 
@@ -252,6 +261,7 @@ func leaveCmd(nodes []int, afterStr string) error {
 
 //  Chunks file into blocks and adds each block to exchange
 func putFileCmd(nodes []int, file string) error {
+	file = normalizePath(file)
 	reader, err := os.Open(file)
 	if err != nil {
 		return fmt.Errorf("Line %d: Failed to open file '%s'.", currLine, file)
@@ -291,6 +301,7 @@ func putCmd(nodes []int, block *blocks.Block) error {
 }
 
 func getFileCmd(nodes []int, file string) error {
+	file = normalizePath(file)
 	blocks, ok := files[file]
 	if !ok {
 		return fmt.Errorf("Tried to get file, '%s', which has not been added.\n", file)
@@ -506,10 +517,12 @@ func ParseRange(s string) ([]int, error) {
 func getOptFlags() map[string]string {
 	bw := flag.String("bw", "none", "overrides workload bandwidth")
 	lat := flag.String("lat", "none", "overrides workload latency")
+	norec := flag.Bool("nr", false, "does not record metrics for run")
 	flag.Parse()
 	d := make(map[string]string, 0)
 	d["bandwidth"] = *bw
 	d["latency"] = *lat
+	d["norec"] = strconv.FormatBool(*norec)
 	return d
 }
 
@@ -517,4 +530,17 @@ func check(e error) {
 	if e != nil {
 		log.Fatal(e)
 	}
+}
+
+func normalizePath(path string) string{
+	//  if path is absolute, don't do anything
+	if string(path[0]) == "/"{
+		return path
+	}
+	//  chop off './' from relative paths
+	if path[0:2] == "./"{
+		path = path[2:]
+	}
+	
+	return bssimpath + path
 }

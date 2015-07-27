@@ -2,18 +2,19 @@
 package main
 
 import (
+	//"fmt"
 	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
 	"testing"
 	"time"
-	//context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
-	//"time"
 	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	//"fmt"
 	"os"
 )
 
-func init() {
-	recorder = NewRecorder("data/metrics")
+func TestMain(m *testing.M){
+	setup()
+	ret := m.Run()
+	teardown()
+	os.Exit(ret)
 }
 
 func TestPutBlockCmd(t *testing.T) {
@@ -85,7 +86,7 @@ func TestPutFileCmd(t *testing.T) {
 func TestGetFileCmd(t *testing.T) {
 	configure("node_count:2", nil)
 	net, peers = createTestNetwork()
-
+	
 	err := putFileCmd([]int{0}, "samples/test.mp3")
 	check(err)
 	for _, block := range files["samples/test.mp3"] {
@@ -121,38 +122,64 @@ func TestGetFileCmd(t *testing.T) {
 func TestLeaveCmd(t *testing.T) {
 	configure("node_count:2, deadline:0.25", nil)
 	net, peers = createTestNetwork()
+	wantedFile := "samples/test.txt"
 
-	err := putFileCmd([]int{0}, "samples/test.txt")
+	err := putFileCmd([]int{0}, wantedFile)
 	check(err)
 
 	err = leaveCmd([]int{0}, "0")
 	check(err)
 	//  wait for node to unlink
 	time.Sleep(time.Millisecond)
-	err = getFileCmd([]int{1}, "samples/test.txt")
+	err = getFileCmd([]int{1}, wantedFile)
 	check(err)
-	for _, block := range files["samples/test.txt"] {
+	for _, block := range files[normalizePath(wantedFile)] {
 		if checkHasBlock([]int{1}, block) {
 			t.Error("Peer 1 got file after peer 0 left.")
 		}
 	}
-
+	
 	configure("node_count:2, deadline:0.25", nil)
 	net, peers = createTestNetwork()
 
-	err = putFileCmd([]int{0}, "samples/test.txt")
+	err = putFileCmd([]int{0}, wantedFile)
 	check(err)
 
 	err = leaveCmd([]int{0}, "5")
 	check(err)
 	//  peer 1 should still be able to get the file
-	err = getFileCmd([]int{1}, "samples/test.txt")
+	err = getFileCmd([]int{1}, wantedFile)
 	check(err)
-	for _, block := range files["samples/test.txt"] {
+	for _, block := range files[normalizePath(wantedFile)] {
 		if !checkHasBlock([]int{1}, block) {
 			t.Error("Peer 1 couldn't get file.")
 		}
 	}
+}
+
+func TestFilePaths(t *testing.T) {
+	configure("node_count: 5", nil)
+	net, peers = createTestNetwork()
+
+	err := putFileCmd([]int{0}, "samples/test.txt")
+	check(err)
+	
+	err = putFileCmd([]int{0}, "../bssim/samples/test.mp3")
+	check(err)
+	
+	err = getFileCmd([]int{1}, "samples/test.txt")
+	check(err)
+	
+	err = getFileCmd([]int{1}, "./samples/test.mp3")
+	check(err)
+}
+
+func setup() {
+	recorder = NewRecorder("data/metrics")
+}
+
+func teardown(){
+	recorder.Kill()
 }
 
 func checkHasBlock(nodes []int, block key.Key) bool {
