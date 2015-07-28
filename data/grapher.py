@@ -111,6 +111,7 @@ class Grapher():
             return self.latmeanbw()
 
         g = sns.lmplot("latencies", "means", data=filtered[['latencies', 'means', 'bandwidths']], scatter=True, col='bandwidths') 
+        g.set(ylim=(0, 200))
 
     @is_graph('graph of latencies vs block_times (colored by runid) for given bandwidths')
     def latmean_nodes(self):
