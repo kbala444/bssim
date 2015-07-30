@@ -2,12 +2,12 @@
 package main
 
 import (
-	//"fmt"
 	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
 	"testing"
 	"time"
 	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
 	"os"
+	"math"
 )
 
 func TestMain(m *testing.M){
@@ -120,6 +120,7 @@ func TestGetFileCmd(t *testing.T) {
 }
 
 func TestLeaveCmd(t *testing.T) {
+	t.Skip()
 	configure("node_count:2, deadline:0.25", nil)
 	net, peers = createTestNetwork()
 	wantedFile := "samples/test.txt"
@@ -174,8 +175,51 @@ func TestFilePaths(t *testing.T) {
 	check(err)
 }
 
+func TestRecorderStats(t *testing.T) {
+	//  create new recorder on different db
+	//  cause I need to commit stuff for this test
+	saved := recorder
+	recorder = NewRecorder("data/test/testing2")
+	
+	configure("node_count: 2", nil)
+	net, peers = createTestNetwork()
+	err := putFileCmd([]int{0}, "samples/test.txt")
+	check(err)
+	
+	rn := time.Now()
+	err = getFileCmd([]int{1}, "samples/test.txt")
+	elapsed := time.Since(rn)
+	check(err)
+	recorder.Commit("testing")
+	
+	mbt, err := recorder.MeanBlockTime(peers[1])
+	check(err)
+	if !within(time.Duration(mbt) * time.Millisecond, elapsed, time.Millisecond * 2){
+		t.Log(mbt)
+		t.Log(elapsed)
+		t.Fatal("Mean block times are off")
+	}
+	
+	if mbt != recorder.TotalMeanBlockTime(peers){
+		t.Fatal("mismatch")
+	}
+	
+	mft := time.Duration(recorder.TotalMeanFileTime() * float64(time.Second))
+	if !within(elapsed, mft, time.Millisecond){
+		t.Log(elapsed, mft)
+		t.Fatal("Total mean file time is off")
+	}
+	
+	//  restore recorder to original
+	recorder = saved
+}
+
+func within(t1 time.Duration, t2 time.Duration, tolerance time.Duration) bool {
+	return math.Abs(float64(t1) - float64(t2)) < float64(tolerance)
+}
+
 func setup() {
-	recorder = NewRecorder("data/metrics")
+	recorder = NewRecorder("data/test/testing")
 }
 
 func teardown(){

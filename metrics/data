@@ -44,3 +44,12 @@ samples/viral
 18, 17.907781ms, 4748, 2298
 19, 23.050104ms, 5069, 2619
 20, 23.720725ms, 4236, 1786
+
+# latency: 3, bandwidth: 100
+# only ran 5 times since it takes forever to finish
+samples/viralcapped
+1, 100.624907ms, 56353, 54065
+2, 105.103925ms, 60778, 58438
+3, 105.817307ms, 57318, 54868
+4, 96.987842ms, 52366, 49916
+5, 101.041374ms, 60739, 58322

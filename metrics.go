@@ -60,7 +60,6 @@ type Recorder struct {
 
 //  assumes configure in main.go has been ran which i should fix
 func NewRecorder(dbPath string) *Recorder {
-	fmt.Println(dbPath)
 	db, err := sql.Open("sqlite3", dbPath)
 	check(err)
 
@@ -102,12 +101,14 @@ func NewRecorder(dbPath string) *Recorder {
 
 //  Closes db without recording half finished run
 func (r *Recorder) Kill() {
+	err := r.tx.Rollback()
+	check(err)
+	
 	r.db.Close()
 }
 
-//  Update current run info with duplicate blocks and duration stats
-func (r *Recorder) Close(workload string) {
-	//  record data here
+//  Commits open transaction to DB without closing recorder
+func (r *Recorder) Commit(workload string) {
 	duration := time.Since(r.createdAt)
 	dup := DupBlocksReceived(peers)
 
@@ -118,10 +119,14 @@ func (r *Recorder) Close(workload string) {
 		config["query_delay"], config["block_size"], config["deadline"], config["bandwidth"],
 		config["latency"], duration, dup, workload)
 	check(err)
-
+	
 	err = r.tx.Commit()
 	check(err)
+}
 
+//  Update current run info with duplicate blocks and duration stats
+func (r *Recorder) Close(workload string) {
+	r.Commit(workload)
 	r.ReportStats()
 	r.db.Close()
 }
@@ -160,7 +165,6 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 //  Ends timer with given id and records data for peer with given pretty id
 func (r *Recorder) EndBlockTime(id int, pid string) {
 	tstamp := (r.times[id].UnixNano() - r.createdAt.UnixNano()) / 1000
-
 	elapsed := time.Since(r.times[id])
 	t := elapsed.Seconds() * 1000
 	delete(r.times, id)
