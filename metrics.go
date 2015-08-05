@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"os"
 	"sync"
 	//"log"
 	"database/sql"
 	"errors"
 	"fmt"
-	bs "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
+	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
+	"github.com/ipfs/go-ipfs/p2p/peer"
 	_ "github.com/heems/bssim/Godeps/_workspace/src/github.com/mattn/go-sqlite3"
 	prom "github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
 	"strconv"
@@ -270,6 +273,45 @@ func DupBlocksReceived(peers []bs.Instance) int {
 	return blocks
 }
 
+//  returns total megabytes uploaded from source to every other peer in peers
+//  if verbose is true, will print the mb uploaded to each peer in peers
+//  if writepath is "", will not write to file
+func GetUploadTotal(peers []bs.Instance, source int, verbose bool, writepath string) (total float32) {
+	write := false
+	if writepath != ""{
+		write = true
+	}
+	
+	var buffer bytes.Buffer		
+	measured := net.(mocknet.MeasuredNet)
+	for i := range peers {
+		if i == source{
+			continue
+		}
+		bout := float32(measured.GetBytesOut(peers[source].Peer, peers[i].Peer)) / 1024
+		if (verbose || write) && bout > 0{
+			buffer.WriteString(fmt.Sprintf("%d->%d %.4f\n", source, i, bout))
+		}
+		total += float32(measured.GetBytesOut(peers[source].Peer, peers[i].Peer))
+	}
+	
+	if verbose {
+		fmt.Println(buffer.String())
+	}
+	
+	if write {
+		file, err := os.OpenFile(writepath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		check(err)
+		_, err = file.WriteString(buffer.String())
+		check(err)
+		file.Close()
+	}
+	
+	//  convert from bytes to mb
+	total = total / 1024
+	return
+}
+
 func getLabels() prom.Labels {
 	if currLables != nil {
 		return currLables
@@ -308,8 +350,8 @@ func (r *Recorder) ReportStats() {
 				fmt.Println("Error when getting mean time of peer ", peer)
 				continue
 			}
-			fmt.Printf("Peer %d, %s: %fms mean time, %d blocks, %d duplicate blocks.\n",
-				num, peer.Peer.String(), mbt, s.BlocksReceived, s.DupBlksReceived)
+			fmt.Printf("Peer %d, %s: %fms mean time, %d blocks, %d duplicate blocks, %f total upload.\n",
+				num, peer.Peer.String(), mbt, s.BlocksReceived, s.DupBlksReceived, GetUploadTotal(peers, num, true, "bwinfo"))
 		}
 	}
 	fmt.Printf("Mean block time: %fms.\n", r.TotalMeanBlockTime(peers))
