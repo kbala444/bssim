@@ -7,15 +7,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	bs "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap"
-	tn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
-	splitter "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/importer/chunk"
-	mocknet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/mock"
-	mockrouting "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/mock"
-	delay "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
-	testutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
+	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
+	splitter "github.com/ipfs/go-ipfs/importer/chunk"
+	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
+	mockrouting "github.com/ipfs/go-ipfs/routing/mock"
+	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
+	testutil "github.com/ipfs/go-ipfs/util/testutil"
 	"github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
 	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
 	"log"
@@ -83,6 +83,10 @@ func main() {
 	//  Clean up dummy files if used
 	if dummy != nil {
 		dummy.DeleteFiles()
+	}
+	
+	for i, _ := range peers{
+		fmt.Println(i, GetUploadTotal(peers, i, true, "bwinfo"))
 	}
 
 	if config["norec"] == "false"{
@@ -321,7 +325,8 @@ func getFileCmd(nodes []int, file string) error {
 		wg.Add(1)
 		go func(i int) {
 			timer := recorder.NewTimer()
-			ctx, _ := context.WithTimeout(context.Background(), deadline)
+			ctx, cancel := context.WithTimeout(context.Background(), deadline)
+			defer cancel()
 			received, _ := peers[i].Exchange.GetBlocks(ctx, blocks)
 
 			for j := 0; j < len(blocks); j++ {
@@ -333,11 +338,12 @@ func getFileCmd(nodes []int, file string) error {
 				}
 				recorder.EndBlockTime(blockTimer, peers[i].Peer.Pretty())
 				fmt.Println(i, x, j)
-				ctx, _ := context.WithTimeout(context.Background(), time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 				err := peers[i].Exchange.HasBlock(ctx, x)
 				if err != nil {
 					fmt.Println("error when adding block", i, err)
 				}
+				cancel()
 			}
 			recorder.EndFileTime(timer, peers[i].Peer.Pretty(), file)
 
@@ -381,7 +387,9 @@ func getCmd(nodes []int, block *blocks.Block) error {
 	for _, node := range nodes {
 		wg.Add(1)
 		go func(i int) {
-			ctx, _ := context.WithTimeout(context.Background(), deadline)
+			ctx, cancel := context.WithTimeout(context.Background(), deadline)
+			defer cancel()
+			
 			peers[i].Exchange.GetBlock(ctx, block.Key())
 			fmt.Printf("Gotem from node %d.\n", i)
 			peers[i].Exchange.Close()
