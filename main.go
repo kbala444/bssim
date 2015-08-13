@@ -11,6 +11,7 @@ import (
 	key "github.com/ipfs/go-ipfs/blocks/key"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
+	decision "github.com/ipfs/go-ipfs/exchange/bitswap/decision"
 	splitter "github.com/ipfs/go-ipfs/importer/chunk"
 	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
 	mockrouting "github.com/ipfs/go-ipfs/routing/mock"
@@ -109,6 +110,7 @@ func configure(cfgString string, override map[string]string) {
 		"latency":          "0",
 		"bandwidth":        "1000",
 		"manual_links":     "false",
+		"strategy":         "Nice",
 	}
 
 	if len(cfgString) > 1 {
@@ -426,13 +428,21 @@ func createTestNetwork() (mocknet.Mocknet, []bs.Instance) {
 
 //  Adds random identities to the mocknet, creates bitswap instances for them, and links + connects them
 func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
+	//  Validate strategy
+	fmt.Println(decision.Strats)
+	fmt.Println(config["strategy"])
+	strat, ok := decision.Strats[config["strategy"]]
+	if !ok{
+		log.Fatal("Invalid strategy", config["strategy"])
+	}
+	
 	instances := make([]bs.Instance, 0)
 	for i := 0; i < n; i++ {
 		peer, err := testutil.RandIdentity()
 		check(err)
 		_, err = (*mn).AddPeer(peer.PrivateKey(), peer.Address())
 		check(err)
-		inst := bs.Session(context.Background(), *snet, peer)
+		inst := bs.Session(context.Background(), *snet, peer, strat)
 		instances = append(instances, inst)
 	}
 
@@ -447,10 +457,12 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
 	if err != nil {
 		log.Fatalf("Invalid latency in config.")
 	}
+	
 	(*mn).SetLinkDefaults(mocknet.LinkOptions{Latency: time.Duration(lat) * time.Millisecond, Bandwidth: bps})
 	if config["manual_links"] == "false" {
 		(*mn).LinkAll()
 	}
+	
 	return instances
 }
 
@@ -525,11 +537,13 @@ func ParseRange(s string) ([]int, error) {
 func getOptFlags() map[string]string {
 	bw := flag.String("bw", "none", "overrides workload bandwidth")
 	lat := flag.String("lat", "none", "overrides workload latency")
+	str := flag.String("str", "Nice", "overrides workload strategy")
 	norec := flag.Bool("nr", false, "does not record metrics for run")
 	flag.Parse()
 	d := make(map[string]string, 0)
 	d["bandwidth"] = *bw
 	d["latency"] = *lat
+	d["strategy"] = *str
 	d["norec"] = strconv.FormatBool(*norec)
 	return d
 }

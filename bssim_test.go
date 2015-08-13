@@ -2,10 +2,10 @@
 package main
 
 import (
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
+	key "github.com/ipfs/go-ipfs/blocks/key"
 	"testing"
 	"time"
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
+	blocks "github.com/ipfs/go-ipfs/blocks"
 	"os"
 	"math"
 )

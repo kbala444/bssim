@@ -1,7 +1,7 @@
 #!/bin/bash
 # used to run single workload and show graphs for it
 # argument should be filename
-
+cd ..
 ./bssim -wl $1
 
 # change workload in config for graphing

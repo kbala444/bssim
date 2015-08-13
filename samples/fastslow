@@ -1,0 +1,10 @@
+node_count:3
+1->2 0 300
+0->2 200 10
+0 put samples/test.mp3
+1 put samples/test.mp3
+2 get samples/test.mp3
+# 2 should serve 1s request faster
+2 put samples/test.txt
+[0-1] get samples/test.txt
+# this works but for some reason peer 0 takes forever to get its block...
