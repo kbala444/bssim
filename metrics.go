@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"os"
 	"sync"
-	//"log"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -12,47 +11,16 @@ import (
 	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
 	"github.com/ipfs/go-ipfs/p2p/peer"
 	_ "github.com/heems/bssim/Godeps/_workspace/src/github.com/mattn/go-sqlite3"
-	prom "github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
 	"strconv"
 	"time"
 )
-
-var (
-	labels = []string{"latency", "bandwidth", "block_size"}
-	//  NewSummaryVec(opts, ["filename", "pid", "latency", "bandwidth"]
-	fileTimes = prom.NewHistogramVec(prom.HistogramOpts{
-		Name:    "file_times_ms",
-		Help:    "Time for peer to get a file.",
-		Buckets: prom.LinearBuckets(1, .25, 12),
-	}, labels)
-
-	blockTimes = prom.NewHistogramVec(prom.HistogramOpts{
-		Name:    "block_times_ms",
-		Help:    "Time for peer to get a block.",
-		Buckets: prom.ExponentialBuckets(0.005, 10, 10),
-		//Buckets: prom.LinearBuckets(0, .05, 100),
-	}, labels)
-
-	dupBlocks = prom.NewGaugeVec(prom.GaugeOpts{
-		Name: "dup_blocks_count",
-		Help: "Count of total duplicate blocks received.",
-	}, labels)
-
-	currLables prom.Labels
-)
-
-func init() {
-	prom.MustRegister(fileTimes)
-	prom.MustRegister(blockTimes)
-	prom.MustRegister(dupBlocks)
-}
 
 type Recorder struct {
 	createdAt  time.Time
 	currID     int
 	times      map[int]time.Time
 	rid        int
-	currLables []string
+	prom       *PromHandler
 	db         *sql.DB
 	//  main transaction
 	tx *sql.Tx
@@ -114,13 +82,20 @@ func (r *Recorder) Kill() {
 func (r *Recorder) Commit(workload string) {
 	duration := time.Since(r.createdAt)
 	dup := DupBlocksReceived(peers)
+	
+	var ml int
+	if config["manual_links"] == "true"{
+		ml = 1
+	} else {
+		ml = 0
+	}
 
 	//  oh god
 	_, err := r.tx.Exec(`INSERT INTO runs(runid, node_count, visibility_delay, query_delay,
-			block_size, deadline, bandwidth, latency, duration, dup_blocks, workload) values(?,
-			?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.rid, config["node_count"], config["visibility_delay"],
+			block_size, deadline, bandwidth, latency, duration, dup_blocks, workload, strategy, manual) values(?,
+			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.rid, config["node_count"], config["visibility_delay"],
 		config["query_delay"], config["block_size"], config["deadline"], config["bandwidth"],
-		config["latency"], duration, dup, workload)
+		config["latency"], duration, dup, workload, config["strategy"], ml)
 	check(err)
 	
 	err = r.tx.Commit()
@@ -152,9 +127,11 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	elapsed := time.Since(r.times[id])
 	t := elapsed.Seconds()
 	delete(r.times, id)
-
-	fileTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
-
+	
+	if r.prom != nil{
+		r.prom.Observe(fileTimes, elapsed)
+	}
+	
 	//  how to best get file size without opening it?
 	bs, err := strconv.Atoi(config["block_size"])
 	check(err)
@@ -162,7 +139,6 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	fsize := bs * len(files[filename])
 
 	r.stmnts["file_times"].Exec(tstamp, t, r.rid, pid, fsize)
-	updateDupBlocks()
 }
 
 //  Ends timer with given id and records data for peer with given pretty id
@@ -171,11 +147,12 @@ func (r *Recorder) EndBlockTime(id int, pid string) {
 	elapsed := time.Since(r.times[id])
 	t := elapsed.Seconds() * 1000
 	delete(r.times, id)
-
-	blockTimes.With(getLabels()).Observe(elapsed.Seconds() * 1000)
-
+	
+	if r.prom != nil{
+		r.prom.Observe(blockTimes, elapsed)
+	}
+	
 	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid)
-	//updateDupBlocks()
 }
 
 //  Returns mean block request fulfillment time of an instance in ms
@@ -310,30 +287,6 @@ func GetUploadTotal(peers []bs.Instance, source int, verbose bool, writepath str
 	//  convert from bytes to mb
 	total = total / 1024
 	return
-}
-
-func getLabels() prom.Labels {
-	if currLables != nil {
-		return currLables
-	}
-
-	currLables := make(map[string]string, 0)
-	for _, label := range labels {
-		currLables[label] = config[label]
-	}
-	return currLables
-}
-
-func updateDupBlocks() {
-	var blocks int
-	for _, p := range peers {
-		pstat, err := p.Exchange.Stat()
-		if err != nil {
-			fmt.Println("Unable to get stats from peer ", p.Peer)
-		}
-		blocks += pstat.BlocksReceived
-	}
-	dupBlocks.With(getLabels()).Set(float64(blocks))
 }
 
 func (r *Recorder) ReportStats() {

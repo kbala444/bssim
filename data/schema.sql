@@ -4,6 +4,13 @@ CREATE TABLE "block_times" (
     "runid" INTEGER,
     "peerid" TEXT
 );
+CREATE TABLE "file_times" (
+    "timestamp" INTEGER,
+    "time" INTEGER,
+    "runid" INTEGER,
+    "peerid" TEXT,
+    "size" INTEGER
+);
 CREATE TABLE runs (
     "runid" INTEGER,
     "node_count" INTEGER,
@@ -14,12 +21,7 @@ CREATE TABLE runs (
     "latency" REAL,
     "bandwidth" REAL,
     "duration" INTEGER,
-    "dup_blocks" INTEGER
-, "workload" TEXT);
-CREATE TABLE "file_times" (
-    "timestamp" INTEGER,
-    "time" INTEGER,
-    "runid" INTEGER,
-    "peerid" TEXT,
-    "size" INTEGER
-);
+    "dup_blocks" INTEGER,
+    "workload" TEXT,
+    "strategy" TEXT
+, "manual" INTEGER);

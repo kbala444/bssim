@@ -429,8 +429,6 @@ func createTestNetwork() (mocknet.Mocknet, []bs.Instance) {
 //  Adds random identities to the mocknet, creates bitswap instances for them, and links + connects them
 func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
 	//  Validate strategy
-	fmt.Println(decision.Strats)
-	fmt.Println(config["strategy"])
 	strat, ok := decision.Strats[config["strategy"]]
 	if !ok{
 		log.Fatal("Invalid strategy", config["strategy"])

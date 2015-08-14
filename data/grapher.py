@@ -237,6 +237,22 @@ class Grapher():
         g = sns.lmplot("size", "time", data=df, scatter=True, col='bandwidth') 
         g.set_axis_labels("file size (Kb)", "mean file time (s)")
 
+    @is_graph('graph of strategy vs files times for manual links')
+    def strategy_times(self):
+        # split on workload, boxplot based on strategy and duration stats, 
+        df_dict = {'time': [], 'workload': [], 'strategy': []}
+
+        self.cur.execute('SELECT runid, workload, duration, strategy FROM runs WHERE manual=1')
+        rows = self.cur.fetchall()
+        for rid, wl, d, strat in rows:
+            #df['id'].append(rid)
+            df_dict['workload'].append(wl)
+            df_dict['strategy'].append(strat)
+            df_dict['time'].append(d)
+
+        df = pd.DataFrame.from_dict(df_dict)
+        g = sns.factorplot(x='strategy', y='time', data=df, col='workload', kind='box')
+
     # saves/shows graphs if specified in config and closes connection
     def finish(self):
         if self.config.getboolean('general', 'save'):
