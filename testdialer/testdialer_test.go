@@ -4,15 +4,15 @@ package testdialer
 import (
 	"strconv"
 	//"fmt"
-	"time"
-	"testing"
 	"net"
+	"testing"
+	"time"
 	//ma "github.com/jbenet/go-multiaddr-net/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	"sync"
 	"bytes"
+	"sync"
 )
 
-func makeListener(port int, t *testing.T) net.Listener{
+func makeListener(port int, t *testing.T) net.Listener {
 	addr := "127.0.0.1:" + strconv.Itoa(port)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -32,13 +32,13 @@ func TestDial(t *testing.T) {
 	if c.Bw != 30 {
 		t.Fatal("Bandwidth not parsed correctly.")
 	}
-	if c.Lat != time.Millisecond * 50 {
+	if c.Lat != time.Millisecond*50 {
 		t.Fatal("Latency not parsed correctly.")
 	}
 	listener.Close()
 }
 
-func TestWrite(t *testing.T){
+func TestWrite(t *testing.T) {
 	d := NewTestDialer()
 	listener := makeListener(1111, t)
 
@@ -50,7 +50,7 @@ func TestWrite(t *testing.T){
 		if err != nil {
 			t.Fatal("failed to accept")
 		}
-		
+
 		buf := make([]byte, 1024)
 		for {
 			_, err := cB.Read(buf)
@@ -73,7 +73,7 @@ func TestWrite(t *testing.T){
 	listener.Close()
 }
 
-func TestLatency(t *testing.T){
+func TestLatency(t *testing.T) {
 	d := NewTestDialer()
 	listener := makeListener(1111, t)
 
@@ -93,7 +93,7 @@ func TestLatency(t *testing.T){
 			if err != nil {
 				break
 			}
-			if int(time.Since(rn).Seconds() * 1000) != 250{
+			if int(time.Since(rn).Seconds()*1000) != 250 {
 				t.Fatal("Latency didn't work.  Time: ", time.Since(rn))
 			}
 			if !bytes.Equal(buf[:4], []byte("ping")) {
@@ -111,20 +111,20 @@ func TestLatency(t *testing.T){
 	if _, err := cA.Write([]byte("ping")); err != nil {
 		t.Fatal("failed to write:", err)
 	}
-	if int(time.Since(rn).Seconds() * 1000) != 500{
+	if int(time.Since(rn).Seconds()*1000) != 500 {
 		t.Fatal("Latency didn't work.  Time: ", time.Since(rn))
 	}
-	
+
 	//  1s
 	if _, err := cA.Read(buf); err != nil {
 		t.Fatal("failed to read:", buf, err)
 	}
-	
+
 	if !bytes.Equal(buf[:4], []byte("pong")) {
 		t.Fatal("Incorrect message received.  Message: ", string(buf[:4]))
 	}
-	
-	if int(time.Since(rn).Seconds()) != 1{
+
+	if int(time.Since(rn).Seconds()) != 1 {
 		t.Fatal("Latency didn't work.  Time: ", time.Since(rn))
 	}
 	cA.Close()
@@ -132,7 +132,7 @@ func TestLatency(t *testing.T){
 	listener.Close()
 }
 
-func TestBandwidth(t *testing.T){
+func TestBandwidth(t *testing.T) {
 	d := NewTestDialer()
 	listener := makeListener(1234, t)
 
@@ -147,7 +147,7 @@ func TestBandwidth(t *testing.T){
 		}
 
 		// echo out
-		buf := make([]byte, 1024 * 1024)
+		buf := make([]byte, 1024*1024)
 		for {
 			_, err := cB.Read(buf)
 			if err != nil {
@@ -156,20 +156,20 @@ func TestBandwidth(t *testing.T){
 		}
 		wg.Done()
 	}()
-	
+
 	//  1mb message at .5mbps should take 2 seconds
-	buf := make([]byte, 1024 * 1024)
+	buf := make([]byte, 1024*1024)
 	buf = append([]byte("beep boop"), buf...)
 	rn = time.Now()
-	
+
 	if _, err := cA.Write(buf); err != nil {
 		t.Fatal("failed to write:", err)
 	}
-	
-	if int(time.Since(rn).Seconds()) != 2{
+
+	if int(time.Since(rn).Seconds()) != 2 {
 		t.Fatal("Bandwidth didn't work.  Time: ", time.Since(rn))
 	}
-	
+
 	cA.Close()
 	wg.Wait()
 	listener.Close()

@@ -3,11 +3,11 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	"log"
 	"math/rand"
+	"os"
+	"os/exec"
 	"strconv"
 )
 

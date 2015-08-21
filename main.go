@@ -87,7 +87,7 @@ func main() {
 		dummy.DeleteFiles()
 	}
 
-	for i, _ := range peers {
+	for i := range peers {
 		fmt.Println(i, GetUploadTotal(peers, i, true, "bwinfo"))
 	}
 
