@@ -1,4 +1,4 @@
-node_count:3
+node_count:3, manual_links:true
 1->2 0 300
 0->2 200 10
 0 put samples/test.mp3
