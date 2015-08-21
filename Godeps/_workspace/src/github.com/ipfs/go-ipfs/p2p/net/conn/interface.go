@@ -5,14 +5,14 @@ import (
 	"net"
 	"time"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	filter "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/filter"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	filter "github.com/ipfs/go-ipfs/p2p/net/filter"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 
-	msgio "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-msgio"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	msgio "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-msgio"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
 )
 
 // Map maps Keys (Peer.IDs) to Connections.

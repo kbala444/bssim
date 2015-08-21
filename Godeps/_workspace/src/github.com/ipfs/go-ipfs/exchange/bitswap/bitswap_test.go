@@ -6,17 +6,17 @@ import (
 	"testing"
 	"time"
 
-	travis "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/travis"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
-	detectrace "github.com/jbenet/go-detect-race"
+	detectrace "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-detect-race"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	travis "github.com/ipfs/go-ipfs/util/testutil/ci/travis"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	blocksutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blocksutil"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	tn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
-	p2ptestutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/test/util"
-	mockrouting "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/mock"
-	delay "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	blocksutil "github.com/ipfs/go-ipfs/blocks/blocksutil"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
+	p2ptestutil "github.com/ipfs/go-ipfs/p2p/test/util"
+	mockrouting "github.com/ipfs/go-ipfs/routing/mock"
+	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
 )
 
 // FIXME the tests are really sensitive to the network delay. fix them to work

@@ -5,10 +5,10 @@ import (
 	"crypto/sha256"
 	"errors"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	ks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/keyspace"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	ks "github.com/ipfs/go-ipfs/routing/keyspace"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 // Returned if a routing table query returns no results. This is NOT expected

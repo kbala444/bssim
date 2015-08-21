@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	proto "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	lgbl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/eventlog/loggables"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	proto "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
 )
 
 // The number of closer peers to send on requests.

@@ -3,9 +3,9 @@ package testutil
 import (
 	"testing"
 
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	ci "github.com/ipfs/go-ipfs/p2p/crypto"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 )
 
 type Identity interface {

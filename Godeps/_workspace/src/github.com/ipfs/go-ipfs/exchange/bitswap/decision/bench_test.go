@@ -4,10 +4,10 @@ import (
 	"math"
 	"testing"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	"github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
+	"github.com/ipfs/go-ipfs/p2p/peer"
+	"github.com/ipfs/go-ipfs/util/testutil"
 )
 
 // FWIW: At the time of this commit, including a timestamp in task increases

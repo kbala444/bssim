@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	ci "github.com/ipfs/go-ipfs/p2p/crypto"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 )
 
 func Init(out io.Writer, nBitsForKeypair int) (*Config, error) {
@@ -39,6 +39,7 @@ func Init(out io.Writer, nBitsForKeypair int) (*Config, error) {
 			Swarm: []string{
 				"/ip4/0.0.0.0/tcp/4001",
 				// "/ip4/0.0.0.0/udp/4002/utp", // disabled for now.
+				"/ip6/::/tcp/4001",
 			},
 			API:     "/ip4/127.0.0.1/tcp/5001",
 			Gateway: "/ip4/127.0.0.1/tcp/8080",

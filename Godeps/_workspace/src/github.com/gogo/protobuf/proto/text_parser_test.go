@@ -37,7 +37,7 @@ import (
 	"testing"
 
 	. "./testdata"
-	. "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	. "github.com/gogo/protobuf/proto"
 )
 
 type UnmarshalTextTest struct {

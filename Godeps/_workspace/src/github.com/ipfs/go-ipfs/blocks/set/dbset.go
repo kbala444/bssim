@@ -1,9 +1,9 @@
 package set
 
 import (
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/bloom"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	"github.com/ipfs/go-ipfs/blocks/bloom"
+	key "github.com/ipfs/go-ipfs/blocks/key"
 )
 
 type datastoreBlockSet struct {

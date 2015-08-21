@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 var log = u.Logger("table")

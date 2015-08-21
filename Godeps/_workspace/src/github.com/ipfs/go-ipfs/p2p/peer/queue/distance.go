@@ -5,9 +5,9 @@ import (
 	"math/big"
 	"sync"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	ks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/keyspace"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	ks "github.com/ipfs/go-ipfs/routing/keyspace"
 )
 
 // peerMetric tracks a peer and its distance to something else.

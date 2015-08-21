@@ -3,19 +3,19 @@ package dht
 import (
 	"sync"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	notif "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/notifications"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	queue "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer/queue"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	pset "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/peerset"
-	todoctr "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/todocounter"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	notif "github.com/ipfs/go-ipfs/notifications"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	queue "github.com/ipfs/go-ipfs/p2p/peer/queue"
+	"github.com/ipfs/go-ipfs/routing"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	u "github.com/ipfs/go-ipfs/util"
+	pset "github.com/ipfs/go-ipfs/util/peerset"
+	todoctr "github.com/ipfs/go-ipfs/util/todocounter"
 
-	process "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	ctxproc "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	process "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	ctxproc "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 var maxQueryConcurrency = AlphaValue

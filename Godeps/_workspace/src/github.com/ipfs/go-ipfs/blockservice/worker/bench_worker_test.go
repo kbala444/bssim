@@ -3,11 +3,11 @@ package worker
 import (
 	"testing"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	blockstore "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blockstore"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/offline"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dssync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dssync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	blockstore "github.com/ipfs/go-ipfs/blocks/blockstore"
+	"github.com/ipfs/go-ipfs/exchange/offline"
 )
 
 func BenchmarkHandle10KBlocks(b *testing.B) {

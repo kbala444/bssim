@@ -1,10 +1,10 @@
 package meterstream
 
 import (
-	metrics "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/metrics"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	protocol "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol"
+	metrics "github.com/ipfs/go-ipfs/metrics"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	protocol "github.com/ipfs/go-ipfs/p2p/protocol"
 )
 
 type meteredStream struct {

@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	reuseport "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-reuseport"
+	reuseport "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-reuseport"
 )
 
 // envReuseport is the env variable name used to turn off reuse port.

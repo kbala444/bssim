@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/base64"
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
 )
 
 // Identity tracks the configuration of the local node's identity.

@@ -1,12 +1,12 @@
 package dht
 
 import (
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	notif "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/notifications"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	kb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/kbucket"
-	pset "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/peerset"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	notif "github.com/ipfs/go-ipfs/notifications"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	kb "github.com/ipfs/go-ipfs/routing/kbucket"
+	pset "github.com/ipfs/go-ipfs/util/peerset"
 )
 
 // Required in order for proper JSON marshaling
@@ -40,9 +40,12 @@ func (dht *IpfsDHT) GetClosestPeers(ctx context.Context, key key.Key) (<-chan pe
 		peerset.Add(p)
 	}
 
+	// since the query doesnt actually pass our context down
+	// we have to hack this here. whyrusleeping isnt a huge fan of goprocess
+	parent := ctx
 	query := dht.newQuery(key, func(ctx context.Context, p peer.ID) (*dhtQueryResult, error) {
 		// For DHT query command
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type: notif.SendingQuery,
 			ID:   p,
 		})
@@ -66,7 +69,7 @@ func (dht *IpfsDHT) GetClosestPeers(ctx context.Context, key key.Key) (<-chan pe
 		}
 
 		// For DHT query command
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type:      notif.PeerResponse,
 			ID:        p,
 			Responses: pointerizePeerInfos(filtered),

@@ -7,19 +7,19 @@ import (
 	"testing"
 	"time"
 
-	ggio "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/io"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dssync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ggio "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/io"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dssync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	mocknet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/mock"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	routing "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	record "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/record"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	routing "github.com/ipfs/go-ipfs/routing"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	record "github.com/ipfs/go-ipfs/routing/record"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 func TestGetFailures(t *testing.T) {

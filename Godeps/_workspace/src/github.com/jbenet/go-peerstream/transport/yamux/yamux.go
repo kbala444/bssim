@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	yamux "github.com/heems/bssim/Godeps/_workspace/src/github.com/hashicorp/yamux"
-	pst "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport"
+	yamux "github.com/jbenet/go-peerstream/Godeps/_workspace/src/github.com/hashicorp/yamux"
+	pst "github.com/jbenet/go-peerstream/transport"
 )
 
 // stream implements pst.Stream using a ss.Stream

@@ -1,6 +1,6 @@
 package config
 
-import "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/ipfsaddr"
+import "github.com/ipfs/go-ipfs/util/ipfsaddr"
 
 // TODO replace with final servers before merge
 

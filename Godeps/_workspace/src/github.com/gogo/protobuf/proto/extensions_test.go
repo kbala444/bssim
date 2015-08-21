@@ -35,7 +35,7 @@ import (
 	"testing"
 
 	pb "./testdata"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 )
 
 func TestGetExtensionsWithMissingExtensions(t *testing.T) {

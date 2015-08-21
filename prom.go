@@ -3,7 +3,7 @@ package main
 
 import (
 	"fmt"
-	prom "github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
+	prom "github.com/prometheus/client_golang/prometheus"
 	"time"
 )
 

@@ -5,14 +5,14 @@ package blockstore
 import (
 	"errors"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dsns "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/namespace"
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dsns "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/namespace"
+	dsq "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	mh "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
 )
 
 var log = eventlog.Logger("blockstore")

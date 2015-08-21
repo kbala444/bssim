@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	netutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/test/util"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	netutil "github.com/ipfs/go-ipfs/p2p/test/util"
 )
 
 func TestPing(t *testing.T) {

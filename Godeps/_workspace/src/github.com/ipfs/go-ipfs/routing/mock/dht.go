@@ -1,12 +1,12 @@
 package mockrouting
 
 import (
-	mocknet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/mock"
-	dht "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	sync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	sync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
+	dht "github.com/ipfs/go-ipfs/routing/dht"
+	"github.com/ipfs/go-ipfs/util/testutil"
 )
 
 type mocknetserver struct {

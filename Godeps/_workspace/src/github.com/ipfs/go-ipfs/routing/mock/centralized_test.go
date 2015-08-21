@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	delay "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
+	"github.com/ipfs/go-ipfs/util/testutil"
 )
 
 func TestKeyNotFound(t *testing.T) {

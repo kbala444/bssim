@@ -6,13 +6,13 @@ import (
 	"errors"
 	"time"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	exchange "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange"
-	waitable "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/waitable"
-	util "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	process "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	ratelimit "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/ratelimit"
+	process "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	ratelimit "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/ratelimit"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	exchange "github.com/ipfs/go-ipfs/exchange"
+	waitable "github.com/ipfs/go-ipfs/thirdparty/waitable"
+	util "github.com/ipfs/go-ipfs/util"
 )
 
 var log = util.Logger("blockservice")

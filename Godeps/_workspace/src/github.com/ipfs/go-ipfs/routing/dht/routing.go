@@ -3,16 +3,16 @@ package dht
 import (
 	"sync"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	notif "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/notifications"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	kb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/kbucket"
-	record "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/record"
-	pset "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/peerset"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	notif "github.com/ipfs/go-ipfs/notifications"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	"github.com/ipfs/go-ipfs/routing"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	kb "github.com/ipfs/go-ipfs/routing/kbucket"
+	record "github.com/ipfs/go-ipfs/routing/record"
+	pset "github.com/ipfs/go-ipfs/util/peerset"
 )
 
 // asyncQueryBuffer is the size of buffered channels in async queries. This
@@ -97,8 +97,9 @@ func (dht *IpfsDHT) GetValue(ctx context.Context, key key.Key) ([]byte, error) {
 	}
 
 	// setup the Query
+	parent := ctx
 	query := dht.newQuery(key, func(ctx context.Context, p peer.ID) (*dhtQueryResult, error) {
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type: notif.SendingQuery,
 			ID:   p,
 		})
@@ -113,7 +114,7 @@ func (dht *IpfsDHT) GetValue(ctx context.Context, key key.Key) ([]byte, error) {
 			res.success = true
 		}
 
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type:      notif.PeerResponse,
 			ID:        p,
 			Responses: pointerizePeerInfos(peers),
@@ -209,8 +210,9 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key key.Key, 
 	}
 
 	// setup the Query
+	parent := ctx
 	query := dht.newQuery(key, func(ctx context.Context, p peer.ID) (*dhtQueryResult, error) {
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type: notif.SendingQuery,
 			ID:   p,
 		})
@@ -246,7 +248,7 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key key.Key, 
 		clpeers := pb.PBPeersToPeerInfos(closer)
 		log.Debugf("got closer peers: %d %s", len(clpeers), clpeers)
 
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type:      notif.PeerResponse,
 			ID:        p,
 			Responses: pointerizePeerInfos(clpeers),
@@ -288,8 +290,9 @@ func (dht *IpfsDHT) FindPeer(ctx context.Context, id peer.ID) (peer.PeerInfo, er
 	}
 
 	// setup the Query
+	parent := ctx
 	query := dht.newQuery(key.Key(id), func(ctx context.Context, p peer.ID) (*dhtQueryResult, error) {
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type: notif.SendingQuery,
 			ID:   p,
 		})
@@ -312,7 +315,7 @@ func (dht *IpfsDHT) FindPeer(ctx context.Context, id peer.ID) (peer.PeerInfo, er
 			}
 		}
 
-		notif.PublishQueryEvent(ctx, &notif.QueryEvent{
+		notif.PublishQueryEvent(parent, &notif.QueryEvent{
 			Type:      notif.PeerResponse,
 			Responses: pointerizePeerInfos(clpeerInfos),
 		})

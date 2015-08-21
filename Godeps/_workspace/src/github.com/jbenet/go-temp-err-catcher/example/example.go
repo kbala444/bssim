@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	tec "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-temp-err-catcher"
+	tec "github.com/jbenet/go-temp-err-catcher"
 )
 
 var (

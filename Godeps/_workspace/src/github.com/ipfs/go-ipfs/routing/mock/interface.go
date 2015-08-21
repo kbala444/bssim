@@ -5,13 +5,13 @@
 package mockrouting
 
 import (
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	routing "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	delay "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	routing "github.com/ipfs/go-ipfs/routing"
+	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
+	"github.com/ipfs/go-ipfs/util/testutil"
 )
 
 // Server provides mockrouting Clients

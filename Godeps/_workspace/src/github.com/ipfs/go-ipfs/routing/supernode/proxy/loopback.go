@@ -1,12 +1,12 @@
 package proxy
 
 import (
-	ggio "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/io"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ggio "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/io"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	dhtpb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	dhtpb "github.com/ipfs/go-ipfs/routing/dht/pb"
 )
 
 // RequestHandler handles routing requests locally

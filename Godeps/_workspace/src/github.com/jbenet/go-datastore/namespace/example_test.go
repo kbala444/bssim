@@ -3,8 +3,8 @@ package namespace_test
 import (
 	"fmt"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	nsds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/namespace"
+	ds "github.com/jbenet/go-datastore"
+	nsds "github.com/jbenet/go-datastore/namespace"
 )
 
 func Example() {

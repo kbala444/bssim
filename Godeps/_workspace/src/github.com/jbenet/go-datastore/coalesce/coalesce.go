@@ -3,8 +3,8 @@ package coalesce
 import (
 	"sync"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	ds "github.com/jbenet/go-datastore"
+	dsq "github.com/jbenet/go-datastore/query"
 )
 
 // parent keys

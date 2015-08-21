@@ -5,11 +5,11 @@ package multistream
 import (
 	"net"
 
-	pst "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport"
-	multiplex "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport/multiplex"
-	spdy "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport/spdystream"
-	yamux "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport/yamux"
-	mss "github.com/whyrusleeping/go-multistream"
+	mss "github.com/jbenet/go-peerstream/Godeps/_workspace/src/github.com/whyrusleeping/go-multistream"
+	pst "github.com/jbenet/go-peerstream/transport"
+	multiplex "github.com/jbenet/go-peerstream/transport/multiplex"
+	spdy "github.com/jbenet/go-peerstream/transport/spdystream"
+	yamux "github.com/jbenet/go-peerstream/transport/yamux"
 )
 
 type transport struct {

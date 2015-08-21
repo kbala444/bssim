@@ -3,13 +3,13 @@ package dht
 import (
 	"fmt"
 
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	routing "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	record "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/record"
-	ctxfrac "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-context/frac"
-	"github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ctxfrac "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-context/frac"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	ci "github.com/ipfs/go-ipfs/p2p/crypto"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	routing "github.com/ipfs/go-ipfs/routing"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	record "github.com/ipfs/go-ipfs/routing/record"
 )
 
 func (dht *IpfsDHT) GetPublicKey(ctx context.Context, p peer.ID) (ci.PubKey, error) {

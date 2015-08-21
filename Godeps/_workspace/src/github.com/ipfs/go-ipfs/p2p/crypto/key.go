@@ -19,10 +19,10 @@ import (
 	"crypto/sha512"
 	"hash"
 
-	proto "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	proto "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
 
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto/pb"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	pb "github.com/ipfs/go-ipfs/p2p/crypto/pb"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 var log = u.Logger("crypto")
@@ -102,8 +102,6 @@ func GenerateEKeyPair(curveName string) ([]byte, GenSharedKey, error) {
 	var curve elliptic.Curve
 
 	switch curveName {
-	case "P-224":
-		curve = elliptic.P224()
 	case "P-256":
 		curve = elliptic.P256()
 	case "P-384":

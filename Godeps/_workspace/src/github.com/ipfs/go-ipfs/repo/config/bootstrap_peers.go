@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	iaddr "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/ipfsaddr"
+	iaddr "github.com/ipfs/go-ipfs/util/ipfsaddr"
 )
 
 // DefaultBootstrapAddresses are the hardcoded bootstrap addresses

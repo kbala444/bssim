@@ -8,18 +8,18 @@ import (
 	"sync"
 	"time"
 
-	mconn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/metrics/conn"
-	conn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/conn"
-	addrutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	lgbl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/eventlog/loggables"
+	mconn "github.com/ipfs/go-ipfs/metrics/conn"
+	conn "github.com/ipfs/go-ipfs/p2p/net/conn"
+	addrutil "github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
-	process "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	processctx "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
-	ratelimit "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/ratelimit"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	process "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	processctx "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
+	ratelimit "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/ratelimit"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 // Diagram of dial sync:

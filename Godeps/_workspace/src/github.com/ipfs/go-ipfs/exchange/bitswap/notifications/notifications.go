@@ -1,10 +1,10 @@
 package notifications
 
 import (
-	pubsub "github.com/heems/bssim/Godeps/_workspace/src/github.com/briantigerchow/pubsub"
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	pubsub "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/briantigerchow/pubsub"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	key "github.com/ipfs/go-ipfs/blocks/key"
 )
 
 const bufferSize = 16

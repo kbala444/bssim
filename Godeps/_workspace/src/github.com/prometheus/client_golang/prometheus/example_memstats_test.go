@@ -16,7 +16,7 @@ package prometheus_test
 import (
 	"runtime"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (

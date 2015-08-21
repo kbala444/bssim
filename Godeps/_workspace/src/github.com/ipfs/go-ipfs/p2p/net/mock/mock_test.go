@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	protocol "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol"
-	testutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
-
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
-	detectrace "github.com/jbenet/go-detect-race"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	protocol "github.com/ipfs/go-ipfs/p2p/protocol"
+	testutil "github.com/ipfs/go-ipfs/util/testutil"
+	
+	detectrace "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-detect-race"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 func randPeer(t *testing.T) peer.ID {
@@ -578,4 +578,52 @@ func TestLimitedStreams(t *testing.T) {
 	if !within(time.Since(before), time.Duration(time.Second*2), time.Second/3) {
 		t.Fatal("Expected 2ish seconds but got ", time.Since(before))
 	}
+}
+
+func TestBytesOut(t *testing.T) {
+	mn, err := FullMeshConnected(context.Background(), 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	var wg sync.WaitGroup
+	messages := 10
+	handler := func(s inet.Stream) {
+		b := make([]byte, 4)
+		for i := 0; i < messages; i++ {
+			if _, err := io.ReadFull(s, b); err != nil {
+				log.Fatal(err)
+			}
+			wg.Done()
+		}
+		s.Close()
+	}
+
+	hosts := mn.Hosts()
+	for _, h := range mn.Hosts() {
+		h.SetStreamHandler("", handler)
+	}
+
+	peers := mn.Peers()
+
+	s, err := hosts[0].NewStream("", hosts[1].ID())
+	if err != nil {
+		t.Fatal(err)
+	}
+	measured := mn.(MeasuredNet)
+	data := []byte("ping")
+	headerLength := 81
+	time.Sleep(time.Millisecond * 20)	
+	for i := 0; i < messages; i++ {
+		wg.Add(1)
+		if _, err := s.Write(data); err != nil {
+			panic(err)
+		}
+		if ((headerLength + i * len(data)) != measured.GetBytesOut(peers[0], peers[1])){
+			t.Log(measured.GetBytesOut(peers[0], peers[1]))
+			t.Log(headerLength + i * len(data))
+			t.Fatal("Bytes out incorrect.")
+		}
+	}
+	wg.Wait()
 }

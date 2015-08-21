@@ -1,6 +1,6 @@
 package queue
 
-import peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+import peer "github.com/ipfs/go-ipfs/p2p/peer"
 
 // PeerQueue maintains a set of peers ordered according to a metric.
 // Implementations of PeerQueue could order peers based on distances along

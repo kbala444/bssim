@@ -7,15 +7,19 @@
 package mocknet
 
 import (
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	host "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	host "github.com/ipfs/go-ipfs/p2p/host"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 	"io"
 	"time"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
 )
+
+type MeasuredNet interface {
+	GetBytesOut(p1, p2 peer.ID) int
+}
 
 type Mocknet interface {
 
@@ -62,7 +66,6 @@ type Mocknet interface {
 }
 
 // LinkOptions are used to change aspects of the links.
-// Sorry but they dont work yet :(
 type LinkOptions struct {
 	Latency   time.Duration
 	Bandwidth float64 // in bytes-per-second

@@ -3,10 +3,10 @@ package blockstore
 import (
 	"testing"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
-	syncds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dsq "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	syncds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	"github.com/ipfs/go-ipfs/blocks"
 )
 
 func TestReturnsErrorWhenSizeNegative(t *testing.T) {

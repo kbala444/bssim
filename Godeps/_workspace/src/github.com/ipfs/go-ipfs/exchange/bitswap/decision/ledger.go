@@ -3,9 +3,9 @@ package decision
 import (
 	"time"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	wl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	wl "github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 )
 
 // keySet is just a convenient alias for maps of keys, where we only care
@@ -57,13 +57,21 @@ func (dr *debtRatio) Value() float64 {
 
 func (l *ledger) SentBytes(n int) {
 	l.exchangeCount++
-	l.lastExchange = time.Now()
+	now := time.Now()
+	if l.firstExchange.IsZero() {
+		l.firstExchange = now
+	}
+	l.lastExchange = now
 	l.Accounting.BytesSent += uint64(n)
 }
 
 func (l *ledger) ReceivedBytes(n int) {
 	l.exchangeCount++
-	l.lastExchange = time.Now()
+	now := time.Now()
+	if l.firstExchange.IsZero() {
+		l.firstExchange = now
+	}
+	l.lastExchange = now
 	l.Accounting.BytesRecv += uint64(n)
 }
 

@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	b58 "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-base58"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	b58 "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-base58"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	mh "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multihash"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/mitchellh/go-homedir"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/mitchellh/go-homedir"
 )
 
 // Debug is a global flag for debugging.

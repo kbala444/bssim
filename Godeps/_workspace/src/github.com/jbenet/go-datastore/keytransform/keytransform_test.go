@@ -5,11 +5,11 @@ import (
 	"sort"
 	"testing"
 
-	. "launchpad.net/gocheck"
+	. "github.com/jbenet/go-datastore/Godeps/_workspace/src/launchpad.net/gocheck"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	kt "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/keytransform"
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	ds "github.com/jbenet/go-datastore"
+	kt "github.com/jbenet/go-datastore/keytransform"
+	dsq "github.com/jbenet/go-datastore/query"
 )
 
 // Hook up gocheck into the "go test" runner.

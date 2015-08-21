@@ -1,11 +1,11 @@
 package metrics
 
 import (
-	gm "github.com/heems/bssim/Godeps/_workspace/src/github.com/whyrusleeping/go-metrics"
+	gm "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/whyrusleeping/go-metrics"
 	"sync"
 
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	protocol "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	protocol "github.com/ipfs/go-ipfs/p2p/protocol"
 )
 
 type Stats struct {

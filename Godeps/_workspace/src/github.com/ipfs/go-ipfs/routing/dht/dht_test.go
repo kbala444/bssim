@@ -9,20 +9,20 @@ import (
 	"testing"
 	"time"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dssync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dssync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	netutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/test/util"
-	routing "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	record "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/record"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	netutil "github.com/ipfs/go-ipfs/p2p/test/util"
+	routing "github.com/ipfs/go-ipfs/routing"
+	record "github.com/ipfs/go-ipfs/routing/record"
+	u "github.com/ipfs/go-ipfs/util"
 
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci"
-	travisci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/travis"
+	ci "github.com/ipfs/go-ipfs/util/testutil/ci"
+	travisci "github.com/ipfs/go-ipfs/util/testutil/ci/travis"
 )
 
 var testCaseValues = map[key.Key][]byte{}
@@ -77,6 +77,16 @@ func connect(t *testing.T, ctx context.Context, a, b *IpfsDHT) {
 	pi := peer.PeerInfo{ID: idB}
 	if err := a.host.Connect(ctx, pi); err != nil {
 		t.Fatal(err)
+	}
+
+	// loop until connection notification has been received.
+	// under high load, this may not happen as immediately as we would like.
+	for a.routingTable.Find(b.self) == "" {
+		time.Sleep(time.Millisecond * 5)
+	}
+
+	for b.routingTable.Find(a.self) == "" {
+		time.Sleep(time.Millisecond * 5)
 	}
 }
 

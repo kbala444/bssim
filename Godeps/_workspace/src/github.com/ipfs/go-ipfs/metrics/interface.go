@@ -1,8 +1,8 @@
 package metrics
 
 import (
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	protocol "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	protocol "github.com/ipfs/go-ipfs/p2p/protocol"
 )
 
 type StreamMeterCallback func(int64, protocol.ID, peer.ID)

@@ -1,7 +1,7 @@
 package datastore2
 
 import (
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
 )
 
 // ClaimThreadSafe claims that a Datastore is threadsafe, even when

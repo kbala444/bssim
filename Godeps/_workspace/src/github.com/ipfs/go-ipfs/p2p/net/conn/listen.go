@@ -5,17 +5,17 @@ import (
 	"io"
 	"net"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
-	reuseport "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-reuseport"
-	tec "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-temp-err-catcher"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	goprocessctx "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	reuseport "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-reuseport"
+	tec "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-temp-err-catcher"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	goprocessctx "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	filter "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/filter"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	filter "github.com/ipfs/go-ipfs/p2p/net/filter"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 )
 
 // ConnWrapper is any function that wraps a raw multiaddr connection

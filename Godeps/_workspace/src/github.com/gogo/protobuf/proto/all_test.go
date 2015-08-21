@@ -45,7 +45,7 @@ import (
 	"time"
 
 	. "./testdata"
-	. "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	. "github.com/gogo/protobuf/proto"
 )
 
 var globalO *Buffer

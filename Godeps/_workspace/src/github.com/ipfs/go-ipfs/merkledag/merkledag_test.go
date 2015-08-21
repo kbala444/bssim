@@ -5,23 +5,24 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 	"sync"
 	"testing"
 
-	bstore "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blockstore"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	bserv "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blockservice"
-	bstest "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blockservice/test"
-	offline "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/offline"
-	chunk "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/importer/chunk"
-	. "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/merkledag"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dssync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
-	"github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dssync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	bstore "github.com/ipfs/go-ipfs/blocks/blockstore"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	bserv "github.com/ipfs/go-ipfs/blockservice"
+	bstest "github.com/ipfs/go-ipfs/blockservice/test"
+	offline "github.com/ipfs/go-ipfs/exchange/offline"
 	imp "github.com/ipfs/go-ipfs/importer"
+	chunk "github.com/ipfs/go-ipfs/importer/chunk"
+	. "github.com/ipfs/go-ipfs/merkledag"
 	"github.com/ipfs/go-ipfs/pin"
 	uio "github.com/ipfs/go-ipfs/unixfs/io"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 type dagservAndPinner struct {
@@ -32,10 +33,7 @@ type dagservAndPinner struct {
 func getDagservAndPinner(t *testing.T) dagservAndPinner {
 	db := dssync.MutexWrap(ds.NewMapDatastore())
 	bs := bstore.NewBlockstore(db)
-	blockserv, err := bserv.New(bs, offline.Exchange(bs))
-	if err != nil {
-		t.Fatal(err)
-	}
+	blockserv := bserv.New(bs, offline.Exchange(bs))
 	dserv := NewDAGService(blockserv)
 	mpin := pin.NewPinner(db, dserv).GetManual()
 	return dagservAndPinner{
@@ -109,12 +107,19 @@ func SubtestNodeStat(t *testing.T, n *Node) {
 		return
 	}
 
+	k, err := n.Key()
+	if err != nil {
+		t.Error("n.Key() failed")
+		return
+	}
+
 	expected := NodeStat{
 		NumLinks:       len(n.Links),
 		BlockSize:      len(enc),
 		LinksSize:      len(enc) - len(n.Data), // includes framing.
 		DataSize:       len(n.Data),
 		CumulativeSize: int(cumSize),
+		Hash:           k.B58String(),
 	}
 
 	actual, err := n.Stat()
@@ -124,7 +129,7 @@ func SubtestNodeStat(t *testing.T, n *Node) {
 	}
 
 	if expected != *actual {
-		t.Error("n.Stat incorrect.\nexpect: %s\nactual: %s", expected, actual)
+		t.Errorf("n.Stat incorrect.\nexpect: %s\nactual: %s", expected, actual)
 	} else {
 		fmt.Printf("n.Stat correct: %s\n", actual)
 	}
@@ -151,13 +156,13 @@ func TestBatchFetchDupBlock(t *testing.T) {
 
 func runBatchFetchTest(t *testing.T, read io.Reader) {
 	var dagservs []DAGService
-	for _, bsi := range bstest.Mocks(t, 5) {
+	for _, bsi := range bstest.Mocks(5) {
 		dagservs = append(dagservs, NewDAGService(bsi))
 	}
 
-	spl := &chunk.SizeSplitter{512}
+	spl := chunk.NewSizeSplitter(read, 512)
 
-	root, err := imp.BuildDagFromReader(read, dagservs[0], spl, nil)
+	root, err := imp.BuildDagFromReader(dagservs[0], spl, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,4 +218,71 @@ func runBatchFetchTest(t *testing.T, read io.Reader) {
 	}
 
 	wg.Wait()
+}
+
+func TestRecursiveAdd(t *testing.T) {
+	a := &Node{Data: []byte("A")}
+	b := &Node{Data: []byte("B")}
+	c := &Node{Data: []byte("C")}
+	d := &Node{Data: []byte("D")}
+	e := &Node{Data: []byte("E")}
+
+	err := a.AddNodeLink("blah", b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = b.AddNodeLink("foo", c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = b.AddNodeLink("bar", d)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = d.AddNodeLink("baz", e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dsp := getDagservAndPinner(t)
+	err = dsp.ds.AddRecursive(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertCanGet(t, dsp.ds, a)
+	assertCanGet(t, dsp.ds, b)
+	assertCanGet(t, dsp.ds, c)
+	assertCanGet(t, dsp.ds, d)
+	assertCanGet(t, dsp.ds, e)
+}
+
+func assertCanGet(t *testing.T, ds DAGService, n *Node) {
+	k, err := n.Key()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = ds.Get(context.TODO(), k)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCantGet(t *testing.T) {
+	dsp := getDagservAndPinner(t)
+	a := &Node{Data: []byte("A")}
+
+	k, err := a.Key()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = dsp.ds.Get(context.TODO(), k)
+	if !strings.Contains(err.Error(), "not found") {
+		t.Fatal("expected err not found, got: ", err)
+	}
 }

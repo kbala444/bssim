@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	mdag "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/merkledag"
+	mdag "github.com/ipfs/go-ipfs/merkledag"
 )
 
 func TestDFSPreNoSkip(t *testing.T) {

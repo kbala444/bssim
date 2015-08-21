@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/huin/goupnp/httpu"
+	"github.com/huin/goupnp/httpu"
 )
 
 const (

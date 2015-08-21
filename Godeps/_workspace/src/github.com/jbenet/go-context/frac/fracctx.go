@@ -4,7 +4,7 @@ package ctxext
 import (
 	"time"
 
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "golang.org/x/net/context"
 )
 
 // WithDeadlineFraction returns a Context with a fraction of the

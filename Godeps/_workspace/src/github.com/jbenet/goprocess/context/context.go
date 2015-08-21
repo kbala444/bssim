@@ -1,8 +1,8 @@
 package goprocessctx
 
 import (
-	goprocess "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	goprocess "github.com/jbenet/goprocess"
+	context "golang.org/x/net/context"
 )
 
 // WithContext constructs and returns a Process that respects

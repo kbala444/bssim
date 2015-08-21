@@ -3,8 +3,8 @@ package sync
 import (
 	"sync"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	ds "github.com/jbenet/go-datastore"
+	dsq "github.com/jbenet/go-datastore/query"
 )
 
 // MutexDatastore contains a child datastire and a mutex.

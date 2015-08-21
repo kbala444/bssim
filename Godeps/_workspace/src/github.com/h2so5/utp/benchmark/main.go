@@ -13,7 +13,7 @@ import (
 
 	"github.com/davecheney/profile"
 	"github.com/dustin/go-humanize"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/h2so5/utp"
+	"github.com/h2so5/utp"
 )
 
 type RandReader struct{}

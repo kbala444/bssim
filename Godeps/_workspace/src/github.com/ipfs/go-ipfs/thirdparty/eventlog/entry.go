@@ -3,8 +3,8 @@ package eventlog
 import (
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/Sirupsen/logrus"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/ipfs/go-ipfs/util"
 )
 
 type entry struct {

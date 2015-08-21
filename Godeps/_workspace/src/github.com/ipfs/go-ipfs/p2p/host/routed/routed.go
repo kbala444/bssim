@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	lgbl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/eventlog/loggables"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
 
-	metrics "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/metrics"
-	host "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	protocol "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol"
-	routing "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
+	metrics "github.com/ipfs/go-ipfs/metrics"
+	host "github.com/ipfs/go-ipfs/p2p/host"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	protocol "github.com/ipfs/go-ipfs/p2p/protocol"
+	routing "github.com/ipfs/go-ipfs/routing"
 )
 
 var log = eventlog.Logger("p2p/host/routed")

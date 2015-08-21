@@ -6,8 +6,8 @@ import (
 	"net"
 	"os"
 
-	reuse "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-reuseport"
 	resolve "github.com/jbenet/go-net-resolve-addr"
+	reuse "github.com/jbenet/go-reuseport"
 )
 
 func main() {

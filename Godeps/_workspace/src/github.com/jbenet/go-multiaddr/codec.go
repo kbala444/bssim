@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	mh "github.com/jbenet/go-multihash"
 )
 
 func stringToBytes(s string) ([]byte, error) {

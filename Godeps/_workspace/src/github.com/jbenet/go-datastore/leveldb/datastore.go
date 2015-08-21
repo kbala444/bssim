@@ -3,12 +3,12 @@ package leveldb
 import (
 	"io"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/opt"
-	"github.com/syndtr/goleveldb/leveldb/util"
+	ds "github.com/jbenet/go-datastore"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/syndtr/goleveldb/leveldb"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/syndtr/goleveldb/leveldb/util"
+	dsq "github.com/jbenet/go-datastore/query"
 )
 
 type Datastore interface {

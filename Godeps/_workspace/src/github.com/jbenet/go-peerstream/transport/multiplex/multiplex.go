@@ -3,8 +3,8 @@ package peerstream_multiplex
 import (
 	"net"
 
-	pst "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport"
-	mp "github.com/whyrusleeping/go-multiplex" // Conn is a connection to a remote peer.
+	mp "github.com/jbenet/go-peerstream/Godeps/_workspace/src/github.com/whyrusleeping/go-multiplex" // Conn is a connection to a remote peer.
+	pst "github.com/jbenet/go-peerstream/transport"
 )
 
 type conn struct {

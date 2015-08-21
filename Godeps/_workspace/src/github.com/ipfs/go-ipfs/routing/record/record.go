@@ -3,13 +3,13 @@ package record
 import (
 	"bytes"
 
-	proto "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	proto "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	dag "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/merkledag"
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	dag "github.com/ipfs/go-ipfs/merkledag"
+	ci "github.com/ipfs/go-ipfs/p2p/crypto"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
 )
 
 var _ = dag.FetchGraph

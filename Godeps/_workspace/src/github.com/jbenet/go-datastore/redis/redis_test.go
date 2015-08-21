@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/fzzy/radix/redis"
-	datastore "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	datastore "github.com/jbenet/go-datastore"
 
-	dstest "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/test"
+	dstest "github.com/jbenet/go-datastore/test"
 )
 
 const RedisEnv = "REDIS_DATASTORE_TEST_HOST"

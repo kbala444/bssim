@@ -3,7 +3,7 @@ package eventlog
 import (
 	"errors"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 type key int

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/huin/goupnp/scpd"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/huin/goupnp/soap"
+	"github.com/huin/goupnp/scpd"
+	"github.com/huin/goupnp/soap"
 )
 
 const (

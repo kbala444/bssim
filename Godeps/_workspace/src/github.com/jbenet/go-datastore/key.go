@@ -4,9 +4,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/satori/go.uuid"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/satori/go.uuid"
 
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	dsq "github.com/jbenet/go-datastore/query"
 )
 
 /*

@@ -5,16 +5,16 @@ import (
 	"errors"
 	"time"
 
-	proto "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	proto "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	routing "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	proxy "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/supernode/proxy"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	"github.com/ipfs/go-ipfs/p2p/host"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	routing "github.com/ipfs/go-ipfs/routing"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	proxy "github.com/ipfs/go-ipfs/routing/supernode/proxy"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
 )
 
 var log = eventlog.Logger("supernode")

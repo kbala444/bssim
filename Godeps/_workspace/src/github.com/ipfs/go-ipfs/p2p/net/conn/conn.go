@@ -6,16 +6,16 @@ import (
 	"net"
 	"time"
 
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	lgbl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/eventlog/loggables"
-	msgio "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-msgio"
-	mpool "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-msgio/mpool"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	msgio "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-msgio"
+	mpool "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-msgio/mpool"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	u "github.com/ipfs/go-ipfs/util"
+	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
 )
 
 var log = eventlog.Logger("conn")

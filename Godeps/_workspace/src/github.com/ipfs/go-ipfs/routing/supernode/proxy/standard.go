@@ -3,16 +3,16 @@ package proxy
 import (
 	"errors"
 
-	ggio "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/io"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ggio "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/io"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	host "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	dhtpb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	kbucket "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/kbucket"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	host "github.com/ipfs/go-ipfs/p2p/host"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	dhtpb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	kbucket "github.com/ipfs/go-ipfs/routing/kbucket"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
 )
 
 const ProtocolSNR = "/ipfs/supernoderouting"

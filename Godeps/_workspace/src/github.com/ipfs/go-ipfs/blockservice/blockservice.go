@@ -5,15 +5,14 @@ package blockservice
 
 import (
 	"errors"
-	"fmt"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blockstore"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	worker "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blockservice/worker"
-	exchange "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	"github.com/ipfs/go-ipfs/blocks/blockstore"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	worker "github.com/ipfs/go-ipfs/blockservice/worker"
+	exchange "github.com/ipfs/go-ipfs/exchange"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 var wc = worker.Config{
@@ -48,10 +47,7 @@ type BlockService struct {
 }
 
 // NewBlockService creates a BlockService with given datastore instance.
-func New(bs blockstore.Blockstore, rem exchange.Interface) (*BlockService, error) {
-	if bs == nil {
-		return nil, fmt.Errorf("BlockService requires valid blockstore")
-	}
+func New(bs blockstore.Blockstore, rem exchange.Interface) *BlockService {
 	if rem == nil {
 		log.Warning("blockservice running in local (offline) mode.")
 	}
@@ -60,7 +56,7 @@ func New(bs blockstore.Blockstore, rem exchange.Interface) (*BlockService, error
 		Blockstore: bs,
 		Exchange:   rem,
 		worker:     worker.NewWorker(rem, wc),
-	}, nil
+	}
 }
 
 // AddBlock adds a particular block to the service, Putting it into the datastore.

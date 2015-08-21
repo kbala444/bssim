@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
 
-	nat "github.com/heems/bssim/Godeps/_workspace/src/github.com/fd/go-nat"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	notifier "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/notifier"
-	goprocess "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	periodic "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/periodic"
+	nat "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/fd/go-nat"
+	goprocess "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	periodic "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/periodic"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	notifier "github.com/ipfs/go-ipfs/thirdparty/notifier"
 )
 
 var (

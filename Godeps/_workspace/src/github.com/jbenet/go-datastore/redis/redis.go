@@ -8,8 +8,8 @@ import (
 
 	"github.com/fzzy/radix/redis"
 
-	datastore "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	query "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	datastore "github.com/jbenet/go-datastore"
+	query "github.com/jbenet/go-datastore/query"
 )
 
 var _ datastore.Datastore = &Datastore{}

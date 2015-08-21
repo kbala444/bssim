@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jackpal/go-nat-pmp"
+	"github.com/jackpal/go-nat-pmp"
 )
 
 var (

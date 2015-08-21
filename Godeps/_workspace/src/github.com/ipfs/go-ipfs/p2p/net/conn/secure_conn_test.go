@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	travis "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/travis"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	travis "github.com/ipfs/go-ipfs/util/testutil/ci/travis"
 
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 func upgradeToSecureConn(t *testing.T, ctx context.Context, sk ic.PrivKey, c Conn) (Conn, error) {

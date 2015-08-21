@@ -8,20 +8,20 @@ import (
 	"sync"
 	"time"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	blockstore "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blockstore"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	exchange "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange"
-	decision "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/decision"
-	bsmsg "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/message"
-	bsnet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/network"
-	notifications "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/notifications"
-	wantlist "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	process "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	process "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	blockstore "github.com/ipfs/go-ipfs/blocks/blockstore"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	exchange "github.com/ipfs/go-ipfs/exchange"
+	decision "github.com/ipfs/go-ipfs/exchange/bitswap/decision"
+	bsmsg "github.com/ipfs/go-ipfs/exchange/bitswap/message"
+	bsnet "github.com/ipfs/go-ipfs/exchange/bitswap/network"
+	notifications "github.com/ipfs/go-ipfs/exchange/bitswap/notifications"
+	wantlist "github.com/ipfs/go-ipfs/exchange/bitswap/wantlist"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	"github.com/ipfs/go-ipfs/thirdparty/delay"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
 )
 
 var log = eventlog.Logger("bitswap")
@@ -39,8 +39,9 @@ const (
 	// kMaxPriority is the max priority as defined by the bitswap protocol
 	kMaxPriority = math.MaxInt32
 
-	HasBlockBufferSize = 256
-	provideWorkers     = 4
+	HasBlockBufferSize    = 256
+	provideKeysBufferSize = 2048
+	provideWorkerMax      = 512
 )
 
 var rebroadcastDelay = delay.Fixed(time.Second * 10)
@@ -50,7 +51,7 @@ var rebroadcastDelay = delay.Fixed(time.Second * 10)
 // delegate.
 // Runs until context is cancelled.
 func New(parent context.Context, p peer.ID, network bsnet.BitSwapNetwork,
-	bstore blockstore.Blockstore, nice bool) exchange.Interface {
+	bstore blockstore.Blockstore, strategy decision.Strategy) exchange.Interface {
 
 	// important to use provided parent context (since it may include important
 	// loggable data). It's probably not a good idea to allow bitswap to be
@@ -76,16 +77,20 @@ func New(parent context.Context, p peer.ID, network bsnet.BitSwapNetwork,
 		px.Close()
 	}()
 
+	if strategy == nil {
+		strategy = decision.Nice
+	}
+
 	bs := &Bitswap{
 		self:          p,
 		blockstore:    bstore,
 		notifications: notif,
-		engine:        decision.NewEngine(ctx, bstore), // TODO close the engine with Close() method
+		engine:        decision.NewEngine(ctx, bstore, strategy), // TODO close the engine with Close() method
 		network:       network,
 		findKeys:      make(chan *blockRequest, sizeBatchRequestChan),
 		process:       px,
 		newBlocks:     make(chan *blocks.Block, HasBlockBufferSize),
-		provideKeys:   make(chan key.Key),
+		provideKeys:   make(chan key.Key, provideKeysBufferSize),
 		wm:            NewWantManager(ctx, network),
 	}
 	go bs.wm.Run()

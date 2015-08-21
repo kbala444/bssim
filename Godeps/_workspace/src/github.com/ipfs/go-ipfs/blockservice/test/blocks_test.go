@@ -5,25 +5,21 @@ import (
 	"testing"
 	"time"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	blockstore "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blockstore"
-	blocksutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blocksutil"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	. "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blockservice"
-	offline "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/offline"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	dssync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
-	"github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	dssync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	blockstore "github.com/ipfs/go-ipfs/blocks/blockstore"
+	blocksutil "github.com/ipfs/go-ipfs/blocks/blocksutil"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	. "github.com/ipfs/go-ipfs/blockservice"
+	offline "github.com/ipfs/go-ipfs/exchange/offline"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 func TestBlocks(t *testing.T) {
 	bstore := blockstore.NewBlockstore(dssync.MutexWrap(ds.NewMapDatastore()))
-	bs, err := New(bstore, offline.Exchange(bstore))
-	if err != nil {
-		t.Error("failed to construct block service", err)
-		return
-	}
+	bs := New(bstore, offline.Exchange(bstore))
 	defer bs.Close()
 
 	b := blocks.NewBlock([]byte("beep boop"))
@@ -63,7 +59,7 @@ func TestBlocks(t *testing.T) {
 }
 
 func TestGetBlocksSequential(t *testing.T) {
-	var servs = Mocks(t, 4)
+	var servs = Mocks(4)
 	for _, s := range servs {
 		defer s.Close()
 	}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util" // TODO remove IPFS dependency
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/ipfs/go-ipfs/util" // TODO remove IPFS dependency
 )
 
 // StandardLogger provides API compatibility with standard printf loggers

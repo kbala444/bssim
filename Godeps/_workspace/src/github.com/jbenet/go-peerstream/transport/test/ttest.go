@@ -13,8 +13,8 @@ import (
 	"sync"
 	"testing"
 
-	ps "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream"
-	pst "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport"
+	ps "github.com/jbenet/go-peerstream"
+	pst "github.com/jbenet/go-peerstream/transport"
 )
 
 var randomness []byte

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	ci "github.com/ipfs/go-ipfs/util/testutil/ci"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 func TestSimultOpen(t *testing.T) {

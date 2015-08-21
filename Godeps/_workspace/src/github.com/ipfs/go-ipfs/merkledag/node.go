@@ -3,10 +3,10 @@ package merkledag
 import (
 	"fmt"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	mh "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	key "github.com/ipfs/go-ipfs/blocks/key"
 )
 
 // Node represents a node in the IPFS Merkle DAG.
@@ -23,6 +23,7 @@ type Node struct {
 
 // NodeStat is a statistics object for a Node. Mostly sizes.
 type NodeStat struct {
+	Hash           string
 	NumLinks       int // number of links in link table
 	BlockSize      int // size of the raw, encoded data
 	LinksSize      int // size of the links segment
@@ -128,13 +129,23 @@ func (n *Node) AddRawLink(name string, l *Link) error {
 // Remove a link on this node by the given name
 func (n *Node) RemoveNodeLink(name string) error {
 	n.encoded = nil
-	for i, l := range n.Links {
-		if l.Name == name {
-			n.Links = append(n.Links[:i], n.Links[i+1:]...)
-			return nil
+	good := make([]*Link, 0, len(n.Links))
+	var found bool
+
+	for _, l := range n.Links {
+		if l.Name != name {
+			good = append(good, l)
+		} else {
+			found = true
 		}
 	}
-	return ErrNotFound
+	n.Links = good
+
+	if !found {
+		return ErrNotFound
+	}
+
+	return nil
 }
 
 // Return a copy of the link with given name
@@ -150,6 +161,15 @@ func (n *Node) GetNodeLink(name string) (*Link, error) {
 		}
 	}
 	return nil, ErrNotFound
+}
+
+func (n *Node) GetLinkedNode(ctx context.Context, ds DAGService, name string) (*Node, error) {
+	lnk, err := n.GetNodeLink(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return lnk.GetNode(ctx, ds)
 }
 
 // Copy returns a copy of the node.
@@ -201,7 +221,13 @@ func (n *Node) Stat() (*NodeStat, error) {
 		return nil, err
 	}
 
+	key, err := n.Key()
+	if err != nil {
+		return nil, err
+	}
+
 	return &NodeStat{
+		Hash:           key.B58String(),
 		NumLinks:       len(n.Links),
 		BlockSize:      len(enc),
 		LinksSize:      len(enc) - len(n.Data), // includes framing.

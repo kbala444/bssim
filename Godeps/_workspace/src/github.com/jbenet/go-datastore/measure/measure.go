@@ -5,9 +5,9 @@ package measure
 import (
 	"time"
 
-	"github.com/codahale/metrics"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	"github.com/jbenet/go-datastore"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/codahale/metrics"
+	"github.com/jbenet/go-datastore/query"
 )
 
 // Histogram measurements exceeding these limits are dropped. TODO

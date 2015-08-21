@@ -3,17 +3,17 @@ package swarm
 import (
 	"fmt"
 
-	mconn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/metrics/conn"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	conn "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/conn"
-	addrutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
-	lgbl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/eventlog/loggables"
+	mconn "github.com/ipfs/go-ipfs/metrics/conn"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	conn "github.com/ipfs/go-ipfs/p2p/net/conn"
+	addrutil "github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
+	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
 
-	multierr "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/multierr"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
-	ps "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	ps "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-peerstream"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	multierr "github.com/ipfs/go-ipfs/thirdparty/multierr"
 )
 
 // Open listeners for each network the swarm should listen on

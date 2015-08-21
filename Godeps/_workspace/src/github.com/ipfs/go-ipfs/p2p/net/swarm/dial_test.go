@@ -6,17 +6,15 @@ import (
 	"testing"
 	"time"
 
-	addrutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	addrutil "github.com/ipfs/go-ipfs/p2p/net/swarm/addr"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 
-	testutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci"
-	jenkins "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/jenkins"
-	travis "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/travis"
+	testutil "github.com/ipfs/go-ipfs/util/testutil"
+	ci "github.com/ipfs/go-ipfs/util/testutil/ci"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	manet "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	manet "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr-net"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 func acceptAndHang(l net.Listener) {
@@ -117,7 +115,7 @@ func TestDialWait(t *testing.T) {
 	defer s1.Close()
 
 	s1.dialT = time.Millisecond * 300 // lower timeout for tests.
-	if travis.IsRunning() {
+	if ci.IsRunning() {
 		s1.dialT = time.Second
 	}
 
@@ -151,7 +149,7 @@ func TestDialWait(t *testing.T) {
 
 func TestDialBackoff(t *testing.T) {
 	// t.Skip("skipping for another test")
-	if travis.IsRunning() || jenkins.IsRunning() {
+	if ci.IsRunning() {
 		t.Skip("travis and jenkins will never have fun with this test")
 	}
 

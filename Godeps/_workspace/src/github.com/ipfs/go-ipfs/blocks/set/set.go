@@ -2,9 +2,9 @@
 package set
 
 import (
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/bloom"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	"github.com/ipfs/go-ipfs/blocks/bloom"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	"github.com/ipfs/go-ipfs/util"
 )
 
 var log = util.Logger("blockset")

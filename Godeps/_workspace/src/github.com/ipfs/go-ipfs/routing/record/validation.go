@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	ci "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/dht/pb"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	ci "github.com/ipfs/go-ipfs/p2p/crypto"
+	pb "github.com/ipfs/go-ipfs/routing/dht/pb"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 // ValidatorFunc is a function that is called to validate a given

@@ -6,8 +6,8 @@ import (
 	"net"
 	"os"
 
-	ps "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream"
-	pstss "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport/spdystream"
+	ps "github.com/jbenet/go-peerstream"
+	pstss "github.com/jbenet/go-peerstream/transport/spdystream"
 )
 
 func main() {

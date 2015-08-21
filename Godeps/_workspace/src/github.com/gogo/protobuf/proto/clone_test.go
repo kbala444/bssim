@@ -34,7 +34,7 @@ package proto_test
 import (
 	"testing"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 
 	pb "./testdata"
 )

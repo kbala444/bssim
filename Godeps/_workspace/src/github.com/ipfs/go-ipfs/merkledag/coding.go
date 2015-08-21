@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"sort"
 
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	mh "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multihash"
 
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/merkledag/pb"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	pb "github.com/ipfs/go-ipfs/merkledag/pb"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 // for now, we use a PBNode intermediate thing.
@@ -34,16 +34,6 @@ func (n *Node) Unmarshal(encoded []byte) error {
 	sort.Stable(LinkSlice(n.Links)) // keep links sorted
 
 	n.Data = pbn.GetData()
-	return nil
-}
-
-// MarshalTo encodes a *Node instance into a given byte slice.
-// The conversion uses an intermediate PBNode.
-func (n *Node) MarshalTo(encoded []byte) error {
-	pbn := n.getPBNode()
-	if _, err := pbn.MarshalTo(encoded); err != nil {
-		return fmt.Errorf("Marshal failed. %v", err)
-	}
 	return nil
 }
 
@@ -82,7 +72,7 @@ func (n *Node) Encoded(force bool) ([]byte, error) {
 		var err error
 		n.encoded, err = n.Marshal()
 		if err != nil {
-			return []byte{}, err
+			return nil, err
 		}
 		n.cached = u.Hash(n.encoded)
 	}

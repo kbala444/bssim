@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"math/big"
 
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 // XORKeySpace is a KeySpace which:

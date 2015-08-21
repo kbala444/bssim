@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	u "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util"
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	mh "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	key "github.com/ipfs/go-ipfs/blocks/key"
+	u "github.com/ipfs/go-ipfs/util"
 )
 
 // Block is a singular block of data in ipfs

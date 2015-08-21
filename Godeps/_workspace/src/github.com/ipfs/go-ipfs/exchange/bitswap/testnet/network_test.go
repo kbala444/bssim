@@ -4,14 +4,14 @@ import (
 	"sync"
 	"testing"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	bsmsg "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/message"
-	bsnet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/bitswap/network"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	mockrouting "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/routing/mock"
-	delay "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
-	testutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	bsmsg "github.com/ipfs/go-ipfs/exchange/bitswap/message"
+	bsnet "github.com/ipfs/go-ipfs/exchange/bitswap/network"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	mockrouting "github.com/ipfs/go-ipfs/routing/mock"
+	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
+	testutil "github.com/ipfs/go-ipfs/util/testutil"
 )
 
 func TestSendMessageAsyncButWaitForResponse(t *testing.T) {

@@ -24,8 +24,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	query "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	ds "github.com/jbenet/go-datastore"
+	query "github.com/jbenet/go-datastore/query"
 )
 
 var ObjectKeySuffix = ".dsobject"

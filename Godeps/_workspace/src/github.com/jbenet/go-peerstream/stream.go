@@ -3,7 +3,7 @@ package peerstream
 import (
 	"fmt"
 
-	pst "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-peerstream/transport"
+	pst "github.com/jbenet/go-peerstream/transport"
 )
 
 // StreamHandler is a function which receives a Stream. It

@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	tu "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
+	tu "github.com/ipfs/go-ipfs/util/testutil"
 
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
 )
 
 // Test basic features of the bucket struct

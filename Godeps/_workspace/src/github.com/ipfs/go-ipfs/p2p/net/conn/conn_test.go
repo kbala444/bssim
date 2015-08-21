@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	travis "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/travis"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	travis "github.com/ipfs/go-ipfs/util/testutil/ci/travis"
 )
 
 func testOneSendRecv(t *testing.T, c1, c2 Conn) {

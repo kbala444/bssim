@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "golang.org/x/net/context"
 )
 
 // this test is on the context tool itself, not our stuff. it's for sanity on ours.

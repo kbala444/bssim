@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	"github.com/jbenet/goprocess"
 )
 
 func ExampleGo() {

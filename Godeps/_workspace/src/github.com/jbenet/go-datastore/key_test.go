@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	. "gopkg.in/check.v1"
+	. "github.com/jbenet/go-datastore"
+	. "github.com/jbenet/go-datastore/Godeps/_workspace/src/gopkg.in/check.v1"
 )
 
 // Hook up gocheck into the "go test" runner.

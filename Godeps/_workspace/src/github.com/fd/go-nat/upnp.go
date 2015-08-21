@@ -4,9 +4,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/huin/goupnp"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/huin/goupnp/dcps/internetgateway1"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/huin/goupnp/dcps/internetgateway2"
+	"github.com/huin/goupnp"
+	"github.com/huin/goupnp/dcps/internetgateway1"
+	"github.com/huin/goupnp/dcps/internetgateway2"
 )
 
 var (

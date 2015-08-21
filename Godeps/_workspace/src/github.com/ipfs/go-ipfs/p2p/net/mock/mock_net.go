@@ -5,19 +5,20 @@ import (
 	"sort"
 	"sync"
 
-	ic "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/crypto"
-	host "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host"
-	bhost "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host/basic"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	p2putil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/test/util"
-	testutil "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil"
+	ic "github.com/ipfs/go-ipfs/p2p/crypto"
+	host "github.com/ipfs/go-ipfs/p2p/host"
+	bhost "github.com/ipfs/go-ipfs/p2p/host/basic"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	p2putil "github.com/ipfs/go-ipfs/p2p/test/util"
+	testutil "github.com/ipfs/go-ipfs/util/testutil"
 
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
-	goprocessctx "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	goprocessctx "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/goprocess/context"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 )
+
 
 // mocknet implements mocknet.Mocknet
 type mocknet struct {
@@ -341,6 +342,11 @@ func (mn *mocknet) LinkDefaults() LinkOptions {
 	mn.RLock()
 	defer mn.RUnlock()
 	return mn.linkDefaults
+}
+
+func (mn *mocknet) GetBytesOut(p1, p2 peer.ID) int {
+	n1 := mn.nets[p1]
+	return n1.GetBytesOut(p2)
 }
 
 // netSlice for sorting by peer

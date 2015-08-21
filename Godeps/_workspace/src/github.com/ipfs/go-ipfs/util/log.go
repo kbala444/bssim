@@ -3,7 +3,7 @@ package util
 import (
 	"os"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 )
 
 func init() {

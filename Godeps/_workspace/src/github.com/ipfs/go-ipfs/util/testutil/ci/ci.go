@@ -6,8 +6,8 @@ package ci
 import (
 	"os"
 
-	jenkins "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/jenkins"
-	travis "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/testutil/ci/travis"
+	jenkins "github.com/ipfs/go-ipfs/util/testutil/ci/jenkins"
+	travis "github.com/ipfs/go-ipfs/util/testutil/ci/travis"
 )
 
 // EnvVar is a type to use travis-only env var names with
@@ -16,7 +16,7 @@ type EnvVar string
 
 // Environment variables that TravisCI uses.
 const (
-	VarCI      EnvVar = "TEST_NO_FUSE"
+	VarCI      EnvVar = "CI"
 	VarNoFuse  EnvVar = "TEST_NO_FUSE"
 	VarVerbose EnvVar = "TEST_VERBOSE"
 )

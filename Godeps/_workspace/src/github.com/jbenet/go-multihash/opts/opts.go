@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	mh "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multihash"
+	mh "github.com/jbenet/go-multihash"
 )
 
 // package errors

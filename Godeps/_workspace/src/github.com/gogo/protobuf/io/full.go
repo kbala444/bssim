@@ -29,7 +29,7 @@
 package io
 
 import (
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 	"io"
 )
 

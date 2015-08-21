@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	mdag "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/merkledag"
+	mdag "github.com/ipfs/go-ipfs/merkledag"
 )
 
 // Order is an identifier for traversal algorithm orders

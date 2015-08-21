@@ -6,12 +6,12 @@ import (
 	"net/url"
 	"strings"
 
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	query "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	ds "github.com/jbenet/go-datastore"
+	query "github.com/jbenet/go-datastore/query"
 
-	"github.com/codahale/blake2"
-	"github.com/mattbaird/elastigo/api"
-	"github.com/mattbaird/elastigo/core"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/codahale/blake2"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/mattbaird/elastigo/api"
+	"github.com/jbenet/go-datastore/Godeps/_workspace/src/github.com/mattbaird/elastigo/core"
 )
 
 // Currently, elastigo does not allow connecting to multiple elasticsearch

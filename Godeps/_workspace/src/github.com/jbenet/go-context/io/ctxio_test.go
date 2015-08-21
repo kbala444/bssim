@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	context "golang.org/x/net/context"
 )
 
 func TestReader(t *testing.T) {

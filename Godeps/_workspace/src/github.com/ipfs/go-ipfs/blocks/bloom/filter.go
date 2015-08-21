@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 	// Non crypto hash, because speed
-	"github.com/mtchavez/jenkins"
-	"github.com/steakknife/hamming"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/mtchavez/jenkins"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/steakknife/hamming"
 	"hash"
 )
 

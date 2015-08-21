@@ -6,7 +6,7 @@
 package ratelimit
 
 import (
-	process "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/goprocess"
+	process "github.com/jbenet/goprocess"
 )
 
 // RateLimiter limits the spawning of children. It does so

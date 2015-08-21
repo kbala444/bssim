@@ -1,10 +1,10 @@
 package blockstore
 
 import (
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/hashicorp/golang-lru"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	key "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/key"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/hashicorp/golang-lru"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/ipfs/go-ipfs/blocks"
+	key "github.com/ipfs/go-ipfs/blocks/key"
 )
 
 // WriteCached returns a blockstore that caches up to |size| unique writes (bs.Put).

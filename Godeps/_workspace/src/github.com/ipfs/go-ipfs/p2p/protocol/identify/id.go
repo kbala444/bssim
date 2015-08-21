@@ -4,20 +4,20 @@ import (
 	"strings"
 	"sync"
 
-	semver "github.com/heems/bssim/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
-	ggio "github.com/heems/bssim/Godeps/_workspace/src/github.com/gogo/protobuf/io"
-	ma "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	semver "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
+	ggio "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/gogo/protobuf/io"
+	ma "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-multiaddr"
+	context "github.com/ipfs/go-ipfs/Godeps/_workspace/src/golang.org/x/net/context"
 
-	mstream "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/metrics/stream"
-	host "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/host"
-	inet "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/net"
-	peer "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/peer"
-	protocol "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol"
-	pb "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/p2p/protocol/identify/pb"
-	config "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/repo/config"
-	eventlog "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/eventlog"
-	lgbl "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/eventlog/loggables"
+	mstream "github.com/ipfs/go-ipfs/metrics/stream"
+	host "github.com/ipfs/go-ipfs/p2p/host"
+	inet "github.com/ipfs/go-ipfs/p2p/net"
+	peer "github.com/ipfs/go-ipfs/p2p/peer"
+	protocol "github.com/ipfs/go-ipfs/p2p/protocol"
+	pb "github.com/ipfs/go-ipfs/p2p/protocol/identify/pb"
+	config "github.com/ipfs/go-ipfs/repo/config"
+	eventlog "github.com/ipfs/go-ipfs/thirdparty/eventlog"
+	lgbl "github.com/ipfs/go-ipfs/util/eventlog/loggables"
 )
 
 var log = eventlog.Logger("net/identify")

@@ -3,7 +3,7 @@ package datastore
 import (
 	"log"
 
-	dsq "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	dsq "github.com/jbenet/go-datastore/query"
 )
 
 // Here are some basic datastore implementations.

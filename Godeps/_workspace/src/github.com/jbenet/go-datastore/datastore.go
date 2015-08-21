@@ -3,7 +3,7 @@ package datastore
 import (
 	"errors"
 
-	query "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/query"
+	query "github.com/jbenet/go-datastore/query"
 )
 
 /*

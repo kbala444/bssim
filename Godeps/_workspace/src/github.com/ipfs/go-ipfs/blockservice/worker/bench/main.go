@@ -15,14 +15,14 @@ import (
 	"testing"
 	"time"
 
-	blocks "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks"
-	blockstore "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blocks/blockstore"
-	worker "github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/blockservice/worker"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/exchange/offline"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/thirdparty/delay"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/ipfs/go-ipfs/util/datastore2"
-	ds "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore"
-	ds_sync "github.com/heems/bssim/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	ds "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore"
+	ds_sync "github.com/ipfs/go-ipfs/Godeps/_workspace/src/github.com/jbenet/go-datastore/sync"
+	blocks "github.com/ipfs/go-ipfs/blocks"
+	blockstore "github.com/ipfs/go-ipfs/blocks/blockstore"
+	worker "github.com/ipfs/go-ipfs/blockservice/worker"
+	"github.com/ipfs/go-ipfs/exchange/offline"
+	"github.com/ipfs/go-ipfs/thirdparty/delay"
+	"github.com/ipfs/go-ipfs/util/datastore2"
 )
 
 const kEstRoutingDelay = time.Second
