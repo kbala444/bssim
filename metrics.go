@@ -2,26 +2,26 @@ package main
 
 import (
 	"bytes"
-	"os"
-	"sync"
 	"database/sql"
 	"errors"
 	"fmt"
+	_ "github.com/heems/bssim/Godeps/_workspace/src/github.com/mattn/go-sqlite3"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
 	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
 	"github.com/ipfs/go-ipfs/p2p/peer"
-	_ "github.com/heems/bssim/Godeps/_workspace/src/github.com/mattn/go-sqlite3"
+	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
 type Recorder struct {
-	createdAt  time.Time
-	currID     int
-	times      map[int]time.Time
-	rid        int
-	prom       *PromHandler
-	db         *sql.DB
+	createdAt time.Time
+	currID    int
+	times     map[int]time.Time
+	rid       int
+	prom      *PromHandler
+	db        *sql.DB
 	//  main transaction
 	tx *sql.Tx
 	//  map of table names to prepared sql statements for them
@@ -74,7 +74,7 @@ func NewRecorder(dbPath string) *Recorder {
 func (r *Recorder) Kill() {
 	err := r.tx.Rollback()
 	check(err)
-	
+
 	r.db.Close()
 }
 
@@ -82,9 +82,9 @@ func (r *Recorder) Kill() {
 func (r *Recorder) Commit(workload string) {
 	duration := time.Since(r.createdAt)
 	dup := DupBlocksReceived(peers)
-	
+
 	var ml int
-	if config["manual_links"] == "true"{
+	if config["manual_links"] == "true" {
 		ml = 1
 	} else {
 		ml = 0
@@ -97,7 +97,7 @@ func (r *Recorder) Commit(workload string) {
 		config["query_delay"], config["block_size"], config["deadline"], config["bandwidth"],
 		config["latency"], duration, dup, workload, config["strategy"], ml)
 	check(err)
-	
+
 	err = r.tx.Commit()
 	check(err)
 }
@@ -127,11 +127,11 @@ func (r *Recorder) EndFileTime(id int, pid string, filename string) {
 	elapsed := time.Since(r.times[id])
 	t := elapsed.Seconds()
 	delete(r.times, id)
-	
-	if r.prom != nil{
+
+	if r.prom != nil {
 		r.prom.Observe(fileTimes, elapsed)
 	}
-	
+
 	//  how to best get file size without opening it?
 	bs, err := strconv.Atoi(config["block_size"])
 	check(err)
@@ -147,11 +147,11 @@ func (r *Recorder) EndBlockTime(id int, pid string) {
 	elapsed := time.Since(r.times[id])
 	t := elapsed.Seconds() * 1000
 	delete(r.times, id)
-	
-	if r.prom != nil{
+
+	if r.prom != nil {
 		r.prom.Observe(blockTimes, elapsed)
 	}
-	
+
 	r.stmnts["block_times"].Exec(tstamp, t, r.rid, pid)
 }
 
@@ -255,27 +255,27 @@ func DupBlocksReceived(peers []bs.Instance) int {
 //  if writepath is "", will not write to file
 func GetUploadTotal(peers []bs.Instance, source int, verbose bool, writepath string) (total float32) {
 	write := false
-	if writepath != ""{
+	if writepath != "" {
 		write = true
 	}
-	
-	var buffer bytes.Buffer		
+
+	var buffer bytes.Buffer
 	measured := net.(mocknet.MeasuredNet)
 	for i := range peers {
-		if i == source{
+		if i == source {
 			continue
 		}
 		bout := float32(measured.GetBytesOut(peers[source].Peer, peers[i].Peer)) / 1024
-		if (verbose || write) && bout > 0{
+		if (verbose || write) && bout > 0 {
 			buffer.WriteString(fmt.Sprintf("%d->%d %.4f\n", source, i, bout))
 		}
 		total += float32(measured.GetBytesOut(peers[source].Peer, peers[i].Peer))
 	}
-	
+
 	if verbose {
 		fmt.Println(buffer.String())
 	}
-	
+
 	if write {
 		file, err := os.OpenFile(writepath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 		check(err)
@@ -283,7 +283,7 @@ func GetUploadTotal(peers []bs.Instance, source int, verbose bool, writepath str
 		check(err)
 		file.Close()
 	}
-	
+
 	//  convert from bytes to mb
 	total = total / 1024
 	return

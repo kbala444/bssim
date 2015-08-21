@@ -2,9 +2,9 @@
 package main
 
 import (
-	"time"
 	"fmt"
-	prom "github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"	
+	prom "github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
+	"time"
 )
 
 var (
@@ -29,8 +29,8 @@ var (
 	}, fields)
 )
 
-type PromHandler struct{
-	currLables	prom.Labels
+type PromHandler struct {
+	currLables prom.Labels
 }
 
 func (p *PromHandler) Start() {
@@ -42,12 +42,12 @@ func (p *PromHandler) Start() {
 func (p *PromHandler) Observe(field *prom.HistogramVec, elapsed time.Duration) {
 	labels := p.getLabels()
 	field.With(labels).Observe(elapsed.Seconds() * 1000)
-	if field == fileTimes{
+	if field == fileTimes {
 		p.updateDupBlocks()
 	}
 }
 
-func (p *PromHandler) getLabels() prom.Labels{
+func (p *PromHandler) getLabels() prom.Labels {
 	if p.currLables == nil {
 		currLables := make(map[string]string, 0)
 		for _, field := range fields {
