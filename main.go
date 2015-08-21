@@ -7,18 +7,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
+	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
 	blocks "github.com/ipfs/go-ipfs/blocks"
 	key "github.com/ipfs/go-ipfs/blocks/key"
 	bs "github.com/ipfs/go-ipfs/exchange/bitswap"
-	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
 	decision "github.com/ipfs/go-ipfs/exchange/bitswap/decision"
+	tn "github.com/ipfs/go-ipfs/exchange/bitswap/testnet"
 	splitter "github.com/ipfs/go-ipfs/importer/chunk"
 	mocknet "github.com/ipfs/go-ipfs/p2p/net/mock"
 	mockrouting "github.com/ipfs/go-ipfs/routing/mock"
 	delay "github.com/ipfs/go-ipfs/thirdparty/delay"
 	testutil "github.com/ipfs/go-ipfs/util/testutil"
-	"github.com/heems/bssim/Godeps/_workspace/src/github.com/prometheus/client_golang/prometheus"
-	context "github.com/heems/bssim/Godeps/_workspace/src/golang.org/x/net/context"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -59,7 +60,7 @@ func main() {
 	configure(scanner.Text(), override)
 	currLine++
 	fmt.Println(config)
-	
+
 	recorder = NewRecorder(normalizePath("data/metrics"))
 
 	net, peers = createTestNetwork()
@@ -85,12 +86,12 @@ func main() {
 	if dummy != nil {
 		dummy.DeleteFiles()
 	}
-	
-	for i, _ := range peers{
+
+	for i, _ := range peers {
 		fmt.Println(i, GetUploadTotal(peers, i, true, "bwinfo"))
 	}
 
-	if config["norec"] == "false"{
+	if config["norec"] == "false" {
 		recorder.Close(file.Name())
 	} else {
 		recorder.Kill()
@@ -105,7 +106,7 @@ func configure(cfgString string, override map[string]string) {
 		"node_count":       "10",
 		"visibility_delay": "0",
 		"query_delay":      "0",
-		"block_size":       strconv.Itoa(splitter.DefaultBlockSize),
+		"block_size":       strconv.FormatInt(splitter.DefaultBlockSize, 10),
 		"deadline":         "600",
 		"latency":          "0",
 		"bandwidth":        "1000",
@@ -138,7 +139,7 @@ func configure(cfgString string, override map[string]string) {
 		log.Fatalf("Invalid deadline.")
 	}
 	deadline = time.Duration(d) * time.Second
-	
+
 	bssimpath, err = os.Getwd()
 	check(err)
 	bssimpath += "/"
@@ -277,12 +278,19 @@ func putFileCmd(nodes []int, file string) error {
 	if err != nil {
 		return fmt.Errorf("Invalid block size in config.")
 	}
-	chunks := (&splitter.SizeSplitter{Size: bsize}).Split(reader)
+	chunks := splitter.NewSizeSplitter(reader, int64(bsize))
 
 	files[file] = make([]key.Key, 0)
 	//  waitgroup for chunks
 	var wg sync.WaitGroup
-	for chunk := range chunks {
+	for {
+		chunk, err := chunks.NextBytes()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
 		wg.Add(1)
 		block := blocks.NewBlock(chunk)
 		files[file] = append(files[file], block.Key())
@@ -292,6 +300,7 @@ func putFileCmd(nodes []int, file string) error {
 			wg.Done()
 		}(block)
 	}
+
 	wg.Wait()
 	return nil
 }
@@ -391,7 +400,7 @@ func getCmd(nodes []int, block *blocks.Block) error {
 		go func(i int) {
 			ctx, cancel := context.WithTimeout(context.Background(), deadline)
 			defer cancel()
-			
+
 			peers[i].Exchange.GetBlock(ctx, block.Key())
 			fmt.Printf("Gotem from node %d.\n", i)
 			peers[i].Exchange.Close()
@@ -430,10 +439,10 @@ func createTestNetwork() (mocknet.Mocknet, []bs.Instance) {
 func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
 	//  Validate strategy
 	strat, ok := decision.Strats[config["strategy"]]
-	if !ok{
+	if !ok {
 		log.Fatal("Invalid strategy", config["strategy"])
 	}
-	
+
 	instances := make([]bs.Instance, 0)
 	for i := 0; i < n; i++ {
 		peer, err := testutil.RandIdentity()
@@ -455,12 +464,12 @@ func genInstances(n int, mn *mocknet.Mocknet, snet *tn.Network) []bs.Instance {
 	if err != nil {
 		log.Fatalf("Invalid latency in config.")
 	}
-	
+
 	(*mn).SetLinkDefaults(mocknet.LinkOptions{Latency: time.Duration(lat) * time.Millisecond, Bandwidth: bps})
 	if config["manual_links"] == "false" {
 		(*mn).LinkAll()
 	}
-	
+
 	return instances
 }
 
@@ -552,15 +561,15 @@ func check(e error) {
 	}
 }
 
-func normalizePath(path string) string{
+func normalizePath(path string) string {
 	//  if path is absolute, don't do anything
-	if string(path[0]) == "/"{
+	if string(path[0]) == "/" {
 		return path
 	}
 	//  chop off './' from relative paths
-	if path[0:2] == "./"{
+	if path[0:2] == "./" {
 		path = path[2:]
 	}
-	
+
 	return bssimpath + path
 }
